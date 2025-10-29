@@ -1,7 +1,7 @@
 # https://just.systems
 
 ios_dev:
-    cargo tauri ios dev
+    cargo tauri ios dev --open
 
 ios_reload_proj:
     xcodegen generate -s src-tauri/gen/apple/project.yml -p src-tauri/gen/apple
