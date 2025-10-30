@@ -11,18 +11,12 @@ PRAGMA foreign_keys = ON;
 
 BEGIN;
 
--- Helper: UUIDv4 default expression
--- Example:
--- lower(hex(randomblob(4)))||'-'||lower(hex(randomblob(2)))||'-'||'4'||substr(lower(hex(randomblob(2))),2)||'-'||substr('89ab',abs(random())%4+1,1)||substr(lower(hex(randomblob(2))),2)||'-'||lower(hex(randomblob(6)))
-
 /* =========================
    CATEGORY GROUPS
    ========================= */
 CREATE TABLE IF NOT EXISTS category_groups (
   id            INTEGER PRIMARY KEY,                        -- bigint
-  global_id     TEXT NOT NULL UNIQUE DEFAULT (
-                   lower(hex(randomblob(4)))||'-'||lower(hex(randomblob(2)))||'-'||'4'||substr(lower(hex(randomblob(2))),2)||'-'||substr('89ab',abs(random())%4+1,1)||substr(lower(hex(randomblob(2))),2)||'-'||lower(hex(randomblob(6)))
-                 ),
+  global_id     BLOB NOT NULL UNIQUE,                       -- supplied by app (uuid crate)
   name          TEXT NOT NULL,
   note          TEXT,
   created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
@@ -52,9 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_category_groups_active ON category_groups (delete
    ========================= */
 CREATE TABLE IF NOT EXISTS categories (
   id            INTEGER PRIMARY KEY,                        -- bigint
-  global_id     TEXT NOT NULL UNIQUE DEFAULT (
-                   lower(hex(randomblob(4)))||'-'||lower(hex(randomblob(2)))||'-'||'4'||substr(lower(hex(randomblob(2))),2)||'-'||substr('89ab',abs(random())%4+1,1)||substr(lower(hex(randomblob(2))),2)||'-'||lower(hex(randomblob(6)))
-                 ),
+  global_id     BLOB NOT NULL UNIQUE,                       -- supplied by app
   name          TEXT NOT NULL,
   note          TEXT,
   group_id      INTEGER NOT NULL,
@@ -87,19 +79,10 @@ CREATE INDEX IF NOT EXISTS idx_categories_active ON categories (deleted_at)
    ========================= */
 CREATE TABLE IF NOT EXISTS entries (
   id            INTEGER PRIMARY KEY,                        -- bigint
-  global_id     TEXT NOT NULL UNIQUE DEFAULT (
-                   lower(hex(randomblob(4)))||'-'||lower(hex(randomblob(2)))||'-'||'4'||substr(lower(hex(randomblob(2))),2)||'-'||substr('89ab',abs(random())%4+1,1)||substr(lower(hex(randomblob(2))),2)||'-'||lower(hex(randomblob(6)))
-                 ),
+  global_id     BLOB NOT NULL UNIQUE,                       -- supplied by app
   payee         TEXT NOT NULL,
   start_time    TEXT NOT NULL,                              -- UTC ISO8601
   end_time      TEXT,                                       -- nullable while in-progress
-  -- duration auto-computed in milliseconds; null when end_time is null
-  duration_ms   INTEGER GENERATED ALWAYS AS (
-                   CASE
-                     WHEN end_time IS NULL THEN NULL
-                     ELSE CAST((julianday(end_time) - julianday(start_time)) * 86400000 AS INTEGER)
-                   END
-                 ) STORED,
   memo          TEXT,
   category_id   INTEGER NOT NULL,
   created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
@@ -124,8 +107,8 @@ END;
 
 CREATE INDEX IF NOT EXISTS idx_entries_category ON entries (category_id);
 CREATE INDEX IF NOT EXISTS idx_entries_start ON entries (start_time);
-CREATE INDEX IF NOT EXISTS idx_entries_active ON entries (deleted_at)
-  WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_entries_active
+ON entries (deleted_at) WHERE deleted_at IS NULL;
 
 COMMIT;
 
