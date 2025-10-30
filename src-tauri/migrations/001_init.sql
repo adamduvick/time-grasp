@@ -7,10 +7,6 @@
 -- - Soft delete via setting deleted_at; no hard delete cascade.
 -- - Application sets deleted_at on soft delete; triggers handle updated_at/version.
 
-PRAGMA foreign_keys = ON;
-
-BEGIN;
-
 /* =========================
    CATEGORY GROUPS
    ========================= */
@@ -110,11 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_entries_start ON entries (start_time);
 CREATE INDEX IF NOT EXISTS idx_entries_active
 ON entries (deleted_at) WHERE deleted_at IS NULL;
 
-COMMIT;
-
 -- Down migration (if your tool needs it):
--- BEGIN;
 -- DROP TABLE IF EXISTS entries;
 -- DROP TABLE IF EXISTS categories;
 -- DROP TABLE IF EXISTS category_groups;
--- COMMIT;
