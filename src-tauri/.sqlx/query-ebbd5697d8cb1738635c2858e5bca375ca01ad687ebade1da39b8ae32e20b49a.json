@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE entries\n               SET deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),\n                   version    = version   -- keep same to trigger bump\n             WHERE id = ?1 AND version = ?2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "ebbd5697d8cb1738635c2858e5bca375ca01ad687ebade1da39b8ae32e20b49a"
+}

@@ -2,8 +2,7 @@
 use anyhow::{Context, Result};
 use std::env;
 
-use crate::model::types::PublicEntry;
-
+mod entry;
 pub mod model_store;
 mod seed_for_dev;
 mod types;
