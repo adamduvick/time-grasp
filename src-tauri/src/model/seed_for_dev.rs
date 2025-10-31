@@ -10,13 +10,13 @@ pub async fn seed_dev_db(pool: &Pool<Sqlite>) -> anyhow::Result<()> {
     // --- CATEGORY GROUPS ---
     let group_ids: Vec<(i64, Uuid, &str, &str)> = vec![
         (
-            1,
+            2,
             Uuid::new_v4(),
             "Work",
             "Professional and career-related tasks",
         ),
         (
-            2,
+            3,
             Uuid::new_v4(),
             "Personal",
             "Personal activities and chores",
@@ -42,23 +42,23 @@ pub async fn seed_dev_db(pool: &Pool<Sqlite>) -> anyhow::Result<()> {
 
     // --- CATEGORIES ---
     let category_defs: Vec<(i64, Uuid, &str, &str, i64)> = vec![
-        (1, Uuid::new_v4(), "Coding", "Software development tasks", 1),
+        (2, Uuid::new_v4(), "Coding", "Software development tasks", 1),
         (
-            2,
+            3,
             Uuid::new_v4(),
             "Meetings",
             "Internal or external meetings",
             1,
         ),
         (
-            3,
+            4,
             Uuid::new_v4(),
             "Exercise",
             "Health-related physical activity",
             2,
         ),
         (
-            4,
+            5,
             Uuid::new_v4(),
             "Chores",
             "Household or daily maintenance tasks",
