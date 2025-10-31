@@ -1,4 +1,8 @@
 # https://just.systems
+set dotenv-load
+
+dev:
+    cargo tauri dev
 
 ios_dev:
     cargo tauri ios dev --open
@@ -8,3 +12,8 @@ ios_reload_proj:
 
 ios_cleanup:
     rm -rf /Users/adamduvick/Library/Developer/Xcode/DerivedData/time-grasp*
+
+[working-directory('src-tauri')]
+reload_database:
+    rm -rf .sqlx dev.db
+    cargo sqlx db create && cargo sqlx migrate run && cargo sqlx prepare
