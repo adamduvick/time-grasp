@@ -3,7 +3,7 @@
 -- ===== Category Groups =====
 CREATE TABLE IF NOT EXISTS category_groups (
   id            INTEGER PRIMARY KEY,
-  global_id     TEXT NOT NULL UNIQUE,
+  global_id     BLOB(16) NOT NULL UNIQUE,
   name          TEXT NOT NULL,
   note          TEXT,
   is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1)),
@@ -55,7 +55,7 @@ CREATE INDEX IF NOT EXISTS idx_category_groups_active
 -- ===== Categories =====
 CREATE TABLE IF NOT EXISTS categories (
   id            INTEGER PRIMARY KEY,
-  global_id     TEXT NOT NULL UNIQUE,
+  global_id     BLOB(16) NOT NULL UNIQUE,
   name          TEXT NOT NULL,
   note          TEXT,
   group_id      INTEGER NOT NULL DEFAULT 1,
@@ -112,7 +112,7 @@ CREATE INDEX IF NOT EXISTS idx_categories_active
 -- ===== Entries =====
 CREATE TABLE IF NOT EXISTS entries (
   id            INTEGER PRIMARY KEY,
-  global_id     TEXT NOT NULL UNIQUE,
+  global_id     BLOB(16) NOT NULL UNIQUE,
   payee         TEXT NOT NULL,
   start_time    TEXT NOT NULL,
   end_time      TEXT,
