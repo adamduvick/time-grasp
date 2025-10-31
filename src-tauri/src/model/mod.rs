@@ -4,13 +4,16 @@ use std::env;
 
 use crate::model::types::PublicEntry;
 
+pub mod model_store;
 mod seed_for_dev;
-mod store;
 mod types;
+
+// --- Re-exports
+pub use model_store::*;
 
 #[tokio::main]
 pub async fn main() -> Result<()> {
-    let pool = store::Store::new(env::var("DATABASE_URL")?)
+    let pool = model_store::ModelStore::new(env::var("DATABASE_URL")?)
         .await
         .context("store instantiation failed")?
         .get_pool()

@@ -6,9 +6,9 @@ use sqlx::{
 
 use crate::model::seed_for_dev;
 
-pub struct Store(sqlite::SqlitePool);
+pub struct ModelStore(sqlite::SqlitePool);
 
-impl Store {
+impl ModelStore {
     pub async fn new(database_url: String) -> Result<Self> {
         // Path to your SQLite database file.
         // ":memory:" for in-memory; "time_grasp.db" for persistent file.
@@ -44,7 +44,7 @@ impl Store {
             eprintln!("❌ Seeding skipped for the following reasons: {:?}", e);
         }
 
-        Ok(Store(pool))
+        Ok(ModelStore(pool))
     }
 
     pub fn get_pool(&self) -> &SqlitePool {

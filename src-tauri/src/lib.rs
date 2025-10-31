@@ -1,6 +1,7 @@
 #[allow(dead_code)]
 #[allow(unused_imports)]
 #[allow(unused_variables)]
+pub mod ctx;
 pub mod model;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
