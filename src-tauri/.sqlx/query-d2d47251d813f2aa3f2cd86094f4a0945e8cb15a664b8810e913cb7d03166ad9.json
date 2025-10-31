@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO categories (id, global_id, name, note, group_id)\n               VALUES (?1, ?2, ?3, ?4, ?5)\n               ON CONFLICT(global_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "d2d47251d813f2aa3f2cd86094f4a0945e8cb15a664b8810e913cb7d03166ad9"
+}
