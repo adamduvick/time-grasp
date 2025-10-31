@@ -128,24 +128,48 @@ impl EntryRepo {
              FROM entries",
         );
 
-        let mut sep = qb.separated(" WHERE ");
+        // Build WHERE clause safely (one WHERE, AND between conditions)
+        let mut any = false;
         if f.active_only {
-            sep.push("deleted_at IS NULL");
+            if !any {
+                qb.push(" WHERE ");
+                any = true;
+            } else {
+                qb.push(" AND ");
+            }
+            qb.push("deleted_at IS NULL");
         }
         if let Some(cat) = f.category_id {
-            sep.push("category_id = ").push_bind(cat);
+            if !any {
+                qb.push(" WHERE ");
+                any = true;
+            } else {
+                qb.push(" AND ");
+            }
+            qb.push("category_id = ").push_bind(cat);
         }
         if let Some(s) = f.start_from {
-            sep.push("julianday(start_time) >= julianday(")
+            if !any {
+                qb.push(" WHERE ");
+                any = true;
+            } else {
+                qb.push(" AND ");
+            }
+            qb.push("julianday(start_time) >= julianday(")
                 .push_bind(s)
                 .push(")");
         }
         if let Some(s) = f.start_to {
-            sep.push("julianday(start_time) <= julianday(")
+            if !any {
+                qb.push(" WHERE ");
+                any = true;
+            } else {
+                qb.push(" AND ");
+            }
+            qb.push("julianday(start_time) <= julianday(")
                 .push_bind(s)
                 .push(")");
         }
-        drop(sep);
 
         qb.push(" ORDER BY start_time DESC");
 
@@ -161,7 +185,6 @@ impl EntryRepo {
     }
 
     // UPDATE (optimistic locking): pass current version; trigger will bump it.
-    #[allow(clippy::too_many_arguments)]
     pub async fn update(
         pool: &SqlitePool,
         id: i64,
@@ -172,38 +195,52 @@ impl EntryRepo {
         memo: Option<Option<String>>,
         category_id: Option<i64>,
     ) -> Result<Entry, RepoError> {
-        let mut qb = QueryBuilder::<Sqlite>::new("UPDATE entries SET ");
-        let mut set = qb.separated(", ");
+        // Build SET clause pieces
+        let mut sets: Vec<&str> = Vec::new();
+        if payee.is_some() {
+            sets.push("payee = ?");
+        }
+        if start_time.is_some() {
+            sets.push("start_time = ?");
+        }
+        if end_time.is_some() {
+            sets.push("end_time = ?");
+        } // binds Option<String>
+        if memo.is_some() {
+            sets.push("memo = ?");
+        } // binds Option<String>
+        if category_id.is_some() {
+            sets.push("category_id = ?");
+        }
+        // Always include a deterministic assignment so SET is never empty
+        sets.push("version = version");
 
+        let set_clause = sets.join(", ");
+        let sql = format!(
+            "UPDATE entries SET {} WHERE id = ? AND version = ? \
+         RETURNING id, global_id, payee, start_time, end_time, duration_ms, memo, \
+                   category_id, created_at, updated_at, deleted_at, version",
+            set_clause
+        );
+
+        let mut q = sqlx::query_as::<_, Entry>(&sql);
         if let Some(v) = payee {
-            set.push("payee = ").push_bind(v);
+            q = q.bind(v);
         }
         if let Some(v) = start_time {
-            set.push("start_time = ").push_bind(v);
+            q = q.bind(v);
         }
         if let Some(v) = end_time {
-            set.push("end_time = ").push_bind(v);
-        } // nullable
+            q = q.bind(v);
+        } // Option<String>
         if let Some(v) = memo {
-            set.push("memo = ").push_bind(v);
-        } // nullable
+            q = q.bind(v);
+        } // Option<String>
         if let Some(v) = category_id {
-            set.push("category_id = ").push_bind(v);
+            q = q.bind(v);
         }
 
-        // Ensure trigger fires (NEW.version == OLD.version)
-        set.push("version = version");
-
-        qb.push(" WHERE id = ")
-            .push_bind(id)
-            .push(" AND version = ")
-            .push_bind(version)
-            .push(
-                " RETURNING id, global_id, payee, start_time, end_time, duration_ms, memo, \
-                           category_id, created_at, updated_at, deleted_at, version",
-            );
-
-        let rec = qb.build_query_as::<Entry>().fetch_optional(pool).await?;
+        let rec = q.bind(id).bind(version).fetch_optional(pool).await?;
         rec.ok_or(RepoError::StaleWrite)
     }
 
