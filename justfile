@@ -17,3 +17,6 @@ ios_cleanup:
 reload_database:
     rm -rf .sqlx dev.db
     cargo sqlx db create && cargo sqlx migrate run && cargo sqlx prepare
+
+test_backend_model:
+    cargo test --package time-grasp model:: -- --test-threads=1
