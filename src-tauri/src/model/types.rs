@@ -1,5 +1,5 @@
+use sqlx::types::Uuid;
 use sqlx::FromRow;
-use uuid::Uuid;
 
 // v_public_entries
 #[derive(Debug, Clone, FromRow)]
