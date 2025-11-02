@@ -44,8 +44,8 @@ VALUES (
   'Ungrouped',
   'Default catch-all group',
   1,
-  CAST(strftime('%s','now') AS INTEGER),
-  CAST(strftime('%s','now') AS INTEGER)
+  CAST(strftime('%s','now') AS INTEGER) * 1000,
+  CAST(strftime('%s','now') AS INTEGER) * 1000
 );
 
 -- ===== Category =====
@@ -98,8 +98,8 @@ VALUES (
   'Default catch-all category',
   1,
   1,
-  CAST(strftime('%s','now') AS INTEGER),
-  CAST(strftime('%s','now') AS INTEGER)
+  CAST(strftime('%s','now') AS INTEGER) * 1000,
+  CAST(strftime('%s','now') AS INTEGER) * 1000
 );
 
 -- ===== Entry =====
