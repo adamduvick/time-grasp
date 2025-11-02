@@ -9,16 +9,18 @@ CREATE TABLE IF NOT EXISTS category_group (
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
   updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
   deleted_at    INTEGER,
-  version       INTEGER NOT NULL DEFAULT 1,
-  is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1))
-);
+  version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
+  is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1)),
+  CHECK (updated_at >= created_at),
+  CHECK (deleted_at IS NULL OR deleted_at >= created_at)
+) STRICT;
 
 -- Protect system groups from rename or soft-delete
 CREATE TRIGGER IF NOT EXISTS category_group_bu_protect_system
 BEFORE UPDATE ON category_group
 FOR EACH ROW
 WHEN OLD.is_system = 1 AND (
-       NEW.name      <> OLD.name OR
+       NEW.name       <> OLD.name OR
        NEW.deleted_at IS NOT OLD.deleted_at
      )
 BEGIN
@@ -33,10 +35,18 @@ BEGIN
   SELECT RAISE(ABORT, 'system category_group cannot be deleted');
 END;
 
--- Seed system rows
--- NOTE: Use stable IDs so entry can safely default to group_id=1.
-INSERT OR IGNORE INTO category_group (id, global_id, name, note, is_system)
-VALUES (1, '00000000-0000-0000-0000-000000000001', 'Ungrouped', 'Default catch-all group', 1);
+-- Seed system rows with 16-byte BLOB UUIDs
+-- 00000000-0000-0000-0000-000000000001 -> X'00000000000000000000000000000001'
+INSERT OR IGNORE INTO category_group (id, global_id, name, note, is_system, created_at, updated_at)
+VALUES (
+  1,
+  X'00000000000000000000000000000001',
+  'Ungrouped',
+  'Default catch-all group',
+  1,
+  CAST(strftime('%s','now') AS INTEGER),
+  CAST(strftime('%s','now') AS INTEGER)
+);
 
 -- ===== Category =====
 CREATE TABLE IF NOT EXISTS category (
@@ -49,12 +59,14 @@ CREATE TABLE IF NOT EXISTS category (
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
   updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
   deleted_at    INTEGER,
-  version       INTEGER NOT NULL DEFAULT 1,
+  version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
   is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1)),
   FOREIGN KEY (group_id) REFERENCES category_group(id)
     ON UPDATE RESTRICT
-    ON DELETE RESTRICT
-);
+    ON DELETE RESTRICT,
+  CHECK (updated_at >= created_at),
+  CHECK (deleted_at IS NULL OR deleted_at >= created_at)
+) STRICT;
 
 -- Protect system category from rename, regroup, or soft-delete
 CREATE TRIGGER IF NOT EXISTS category_bu_protect_system
@@ -77,10 +89,18 @@ BEGIN
   SELECT RAISE(ABORT, 'system category cannot be deleted');
 END;
 
--- Seed system rows
--- NOTE: Use stable IDs so entry can safely default to category_id=1.
-INSERT OR IGNORE INTO category (id, global_id, name, note, group_id, is_system)
-VALUES (1, '00000000-0000-0000-0000-000000000001', 'Uncategorized', 'Default catch-all category', 1, 1);
+-- Seed system rows with 16-byte BLOB UUIDs
+INSERT OR IGNORE INTO category (id, global_id, name, note, group_id, is_system, created_at, updated_at)
+VALUES (
+  1,
+  X'00000000000000000000000000000001',
+  'Uncategorized',
+  'Default catch-all category',
+  1,
+  1,
+  CAST(strftime('%s','now') AS INTEGER),
+  CAST(strftime('%s','now') AS INTEGER)
+);
 
 -- ===== Entry =====
 CREATE TABLE IF NOT EXISTS entry (
@@ -90,13 +110,21 @@ CREATE TABLE IF NOT EXISTS entry (
   start_time    INTEGER NOT NULL CHECK (start_time > 0),
   end_time      INTEGER,
   note          TEXT,
-  -- NOT NULL with DEFAULT to the "Uncategorized" category (seeded below as id=1)
+  -- NOT NULL with DEFAULT to the "Uncategorized" category (seeded above as id=1)
   category_id   INTEGER NOT NULL DEFAULT 1,
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
   updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
   deleted_at    INTEGER,
-  version       INTEGER NOT NULL DEFAULT 1,
+  version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
   FOREIGN KEY (category_id) REFERENCES category(id)
     ON UPDATE RESTRICT
-    ON DELETE SET DEFAULT
-);
+    ON DELETE SET DEFAULT,
+  CHECK (end_time IS NULL OR end_time >= start_time),
+  CHECK (updated_at >= created_at),
+  CHECK (deleted_at IS NULL OR deleted_at >= created_at)
+) STRICT;
+
+-- ===== Indexes (soft-delete aware) =====
+CREATE INDEX IF NOT EXISTS idx_entry_active_start ON entry(start_time) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_entry_cat_start ON entry(category_id, start_time) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_entry_updated     ON entry(updated_at) WHERE deleted_at IS NULL;
