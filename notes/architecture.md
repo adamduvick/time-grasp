@@ -1,5 +1,20 @@
 # Architecture
 
+## Data Flow
+
+- Frontend is hydrated with data from backend and employs optimistic UI updates on data mutation
+- Backend is local truth source; data mutation events are emitted to frontend
+- Backend handles syncing with server
+- When data mutations are pushed from frontend, 
+
+recommended pragmas
+
+```rust
+PRAGMA foreign_keys = ON; // enforces foreign key existence
+PRAGMA journal_mode = WAL; // write ahead logging for speed and redundancies
+PRAGMA synchronous = NORMAL; // balance speed and data-loss protection
+```
+
 ## Backend
 
 ### Model
