@@ -1,31 +1,30 @@
-use sqlx::types::Uuid;
-use sqlx::FromRow;
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
-// v_public_entries
-#[derive(Debug, Clone, FromRow)]
-pub struct PublicEntry {
+pub struct EntryForCreate {
     pub global_id: Uuid,
     pub payee: String,
-    pub start_time: String,       // or time::OffsetDateTime
-    pub end_time: Option<String>, // or Option<time::OffsetDateTime>
-    pub memo: Option<String>,
-    pub category: String, // category name
+    pub start_time: DateTime<Utc>,
+    pub end_time: Option<DateTime<Utc>>,
+    pub note: Option<String>,
+    pub category_global_id: Option<Uuid>,
 }
 
-// v_public_categories
-#[derive(Debug, Clone, FromRow)]
-pub struct PublicCategory {
+pub struct EntryForUpdate {
     pub global_id: Uuid,
-    pub name: String,
-    pub note: Option<String>,
-    #[sqlx(rename = "group")]
-    pub group_name: String, // category group name
+    pub payee: Option<String>,
+    pub start_time: Option<DateTime<Utc>>,
+    pub end_time: Option<Option<DateTime<Utc>>>, // Some(None) clears end_time
+    pub note: Option<Option<String>>,            // Some(None) clears note
+    pub category_global_id: Option<Option<Uuid>>, // Some(None) clears category
 }
 
-// v_public_category_groups
-#[derive(Debug, Clone, FromRow)]
-pub struct PublicCategoryGroup {
+pub struct EntryForDelete {
     pub global_id: Uuid,
-    pub name: String,
-    pub note: Option<String>,
+    pub delete_type: DeleteType,
+}
+
+pub enum DeleteType {
+    Soft,
+    Hard,
 }
