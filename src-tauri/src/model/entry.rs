@@ -18,6 +18,38 @@ pub struct Entry {
     pub version: i64,
 }
 
+pub trait Queryable {
+    const ENTITY: &'static str;
+    const FIELD_NAMES: &'static str;
+    fn select(&self) -> String;
+    fn returing(&self) -> String;
+}
+
+impl Queryable for Entry {
+    const ENTITY: &'static str = "entries";
+    const FIELD_NAMES: &'static str = r#"
+        id, 
+        global_id, 
+        payee, 
+        start_time, 
+        end_time, 
+        duration_ms, 
+        memo, 
+        category_id, 
+        created_at, 
+        updated_at, 
+        deleted_at, 
+        version"#;
+
+    fn select(self: &Self) -> String {
+        format!("SELECT {} FROM {}", Self::FIELD_NAMES, Self::ENTITY)
+    }
+
+    fn returing(self: &Self) -> String {
+        format!("RETURNING {}", Self::FIELD_NAMES)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct NewEntry {
     pub global_id: Uuid,
