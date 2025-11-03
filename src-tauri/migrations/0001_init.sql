@@ -3,7 +3,7 @@
 -- ===== Category Group =====
 CREATE TABLE IF NOT EXISTS category_group (
   id            INTEGER PRIMARY KEY,
-  global_id     BLOB NOT NULL UNIQUE,
+  uuid          BLOB NOT NULL UNIQUE,
   name          TEXT NOT NULL UNIQUE,
   note          TEXT,
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
@@ -37,33 +37,33 @@ END;
 
 -- Seed system rows with 16-byte BLOB UUIDs
 -- 00000000-0000-0000-0000-000000000001 -> X'00000000000000000000000000000001'
-INSERT OR IGNORE INTO category_group (id, global_id, name, note, is_system, created_at, updated_at)
+INSERT OR IGNORE INTO category_group (id, uuid, name, note, is_system, created_at, updated_at)
 VALUES (
   1,
   X'00000000000000000000000000000001',
   'Ungrouped',
   'Default catch-all group',
   1,
-  CAST(strftime('%s','now') AS INTEGER) * 1000,
-  CAST(strftime('%s','now') AS INTEGER) * 1000
+  CAST(strftime('%s','now') AS INTEGER),
+  CAST(strftime('%s','now') AS INTEGER)
 );
 
 -- ===== Category =====
 CREATE TABLE IF NOT EXISTS category (
   id            INTEGER PRIMARY KEY,
-  global_id     BLOB NOT NULL UNIQUE,
+  uuid          BLOB NOT NULL UNIQUE,
   name          TEXT NOT NULL UNIQUE,
   note          TEXT,
   -- NOT NULL with DEFAULT to the "Ungrouped" group (seeded below as id=1)
-  group_id      INTEGER NOT NULL DEFAULT 1,
+  group_uuid    BLOB NOT NULL DEFAULT X'00000000000000000000000000000001',
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
   updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
   deleted_at    INTEGER,
   version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
   is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1)),
-  FOREIGN KEY (group_id) REFERENCES category_group(id)
+  FOREIGN KEY (group_uuid) REFERENCES category_group(uuid)
     ON UPDATE RESTRICT
-    ON DELETE RESTRICT,
+    ON DELETE SET DEFAULT,
   CHECK (updated_at >= created_at),
   CHECK (deleted_at IS NULL OR deleted_at >= created_at)
 ) STRICT;
@@ -74,7 +74,7 @@ BEFORE UPDATE ON category
 FOR EACH ROW
 WHEN OLD.is_system = 1 AND (
        NEW.name       <> OLD.name OR
-       NEW.group_id   <> OLD.group_id OR
+       NEW.group_uuid <> OLD.group_uuid OR
        NEW.deleted_at IS NOT OLD.deleted_at
      )
 BEGIN
@@ -90,33 +90,33 @@ BEGIN
 END;
 
 -- Seed system rows with 16-byte BLOB UUIDs
-INSERT OR IGNORE INTO category (id, global_id, name, note, group_id, is_system, created_at, updated_at)
+INSERT OR IGNORE INTO category (id, uuid, name, note, group_uuid, is_system, created_at, updated_at)
 VALUES (
   1,
   X'00000000000000000000000000000001',
   'Uncategorized',
   'Default catch-all category',
+  X'00000000000000000000000000000001',
   1,
-  1,
-  CAST(strftime('%s','now') AS INTEGER) * 1000,
-  CAST(strftime('%s','now') AS INTEGER) * 1000
+  CAST(strftime('%s','now') AS INTEGER),
+  CAST(strftime('%s','now') AS INTEGER)
 );
 
 -- ===== Entry =====
 CREATE TABLE IF NOT EXISTS entry (
   id            INTEGER PRIMARY KEY,
-  global_id     BLOB NOT NULL UNIQUE,
+  uuid          BLOB NOT NULL UNIQUE,
   name          TEXT NOT NULL,
   start_time    INTEGER NOT NULL CHECK (start_time > 0),
   end_time      INTEGER,
   note          TEXT,
   -- NOT NULL with DEFAULT to the "Uncategorized" category (seeded above as id=1)
-  category_id   INTEGER NOT NULL DEFAULT 1,
+  category_uuid BLOB NOT NULL DEFAULT X'00000000000000000000000000000001',
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
   updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
   deleted_at    INTEGER,
   version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
-  FOREIGN KEY (category_id) REFERENCES category(id)
+  FOREIGN KEY (category_uuid) REFERENCES category(uuid)
     ON UPDATE RESTRICT
     ON DELETE SET DEFAULT,
   CHECK (end_time IS NULL OR end_time >= start_time),
@@ -125,6 +125,6 @@ CREATE TABLE IF NOT EXISTS entry (
 ) STRICT;
 
 -- ===== Indexes (soft-delete aware) =====
-CREATE INDEX IF NOT EXISTS idx_entry_active_start ON entry(start_time) WHERE deleted_at IS NULL;
-CREATE INDEX IF NOT EXISTS idx_entry_cat_start ON entry(category_id, start_time) WHERE deleted_at IS NULL;
-CREATE INDEX IF NOT EXISTS idx_entry_updated     ON entry(updated_at) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_entry_active_start ON entry(start_time)                WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_entry_cat_start    ON entry(category_uuid, start_time) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_entry_updated      ON entry(updated_at)                WHERE deleted_at IS NULL;

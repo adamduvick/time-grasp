@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT \n            uuid, \n            name, \n            note,\n            group_uuid, \n            created_at      as \"created_at: DateTime<Utc>\", \n            updated_at      as \"updated_at: DateTime<Utc>\", \n            deleted_at      as \"deleted_at: Option<DateTime<Utc>>\", \n            version\n           FROM category\n           WHERE uuid = ?1",
+  "describe": {
+    "columns": [
+      {
+        "name": "uuid",
+        "ordinal": 0,
+        "type_info": "Blob"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "note",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "group_uuid",
+        "ordinal": 3,
+        "type_info": "Blob"
+      },
+      {
+        "name": "created_at: DateTime<Utc>",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "updated_at: DateTime<Utc>",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "deleted_at: Option<DateTime<Utc>>",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "version",
+        "ordinal": 7,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "6ca675622462bdab6194f3db1f8a3fa6bc3c4ab42d7c6c64958ddc32509f0447"
+}

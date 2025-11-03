@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO category_group (uuid, name, note, created_at, updated_at)\n               SELECT ?1, ?2, ?3, ?4, ?5\n               ON CONFLICT(uuid) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "c7f8a7b724e7d0dd42ad0f6f9dccfa4341c39fa8bb6037b637b0ea66a9694e62"
+}
