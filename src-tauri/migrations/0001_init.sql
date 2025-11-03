@@ -3,7 +3,7 @@
 -- ===== Category Group =====
 CREATE TABLE IF NOT EXISTS category_group (
   id            INTEGER PRIMARY KEY,
-  global_id     BLOB(16) NOT NULL UNIQUE,
+  global_id     BLOB NOT NULL UNIQUE,
   name          TEXT NOT NULL UNIQUE,
   note          TEXT,
   created_at    INTEGER NOT NULL CHECK (created_at > 0),
@@ -51,7 +51,7 @@ VALUES (
 -- ===== Category =====
 CREATE TABLE IF NOT EXISTS category (
   id            INTEGER PRIMARY KEY,
-  global_id     BLOB(16) NOT NULL UNIQUE,
+  global_id     BLOB NOT NULL UNIQUE,
   name          TEXT NOT NULL UNIQUE,
   note          TEXT,
   -- NOT NULL with DEFAULT to the "Ungrouped" group (seeded below as id=1)
@@ -105,8 +105,8 @@ VALUES (
 -- ===== Entry =====
 CREATE TABLE IF NOT EXISTS entry (
   id            INTEGER PRIMARY KEY,
-  global_id     BLOB(16) NOT NULL UNIQUE,
-  payee         TEXT NOT NULL,
+  global_id     BLOB NOT NULL UNIQUE,
+  name          TEXT NOT NULL,
   start_time    INTEGER NOT NULL CHECK (start_time > 0),
   end_time      INTEGER,
   note          TEXT,
