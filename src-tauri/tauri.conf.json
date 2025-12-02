@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.time-grasp.app",
   "build": {
+    "beforeDevCommand": "trunk serve --port 1420",
     "beforeBuildCommand": "trunk build --release",
+    "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../dist"
   },
   "app": {

@@ -1,130 +1,117 @@
--- 0001_init.sql (SQLite)
-
--- ===== Category Group =====
 CREATE TABLE IF NOT EXISTS category_group (
-  id            INTEGER PRIMARY KEY,
-  uuid          BLOB NOT NULL UNIQUE,
-  name          TEXT NOT NULL UNIQUE,
-  note          TEXT,
-  created_at    INTEGER NOT NULL CHECK (created_at > 0),
-  updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
-  deleted_at    INTEGER,
-  version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
-  is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1)),
-  CHECK (updated_at >= created_at),
-  CHECK (deleted_at IS NULL OR deleted_at >= created_at)
+    id BLOB PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    note TEXT,
+    -- sync columns
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('subsec') * 1000 AS INTEGER)),
+    updated_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('subsec') * 1000 AS INTEGER)),
+    deleted_at INTEGER,
+    deleted_by_user BLOB,
+    deleted_by_device BLOB,
+    tombstone_reason TEXT,
+    CHECK (created_at <= updated_at)
 ) STRICT;
-
--- Protect system groups from rename or soft-delete
-CREATE TRIGGER IF NOT EXISTS category_group_bu_protect_system
-BEFORE UPDATE ON category_group
-FOR EACH ROW
-WHEN OLD.is_system = 1 AND (
-       NEW.name       <> OLD.name OR
-       NEW.deleted_at IS NOT OLD.deleted_at
-     )
-BEGIN
-  SELECT RAISE(ABORT, 'system category_group cannot be renamed or soft-deleted');
-END;
-
-CREATE TRIGGER IF NOT EXISTS category_group_bd_protect_system
-BEFORE DELETE ON category_group
-FOR EACH ROW
-WHEN OLD.is_system = 1
-BEGIN
-  SELECT RAISE(ABORT, 'system category_group cannot be deleted');
-END;
-
--- Seed system rows with 16-byte BLOB UUIDs
--- 00000000-0000-0000-0000-000000000001 -> X'00000000000000000000000000000001'
-INSERT OR IGNORE INTO category_group (id, uuid, name, note, is_system, created_at, updated_at)
-VALUES (
-  1,
-  X'00000000000000000000000000000001',
-  'Ungrouped',
-  'Default catch-all group',
-  1,
-  CAST(strftime('%s','now') AS INTEGER),
-  CAST(strftime('%s','now') AS INTEGER)
-);
-
--- ===== Category =====
 CREATE TABLE IF NOT EXISTS category (
-  id            INTEGER PRIMARY KEY,
-  uuid          BLOB NOT NULL UNIQUE,
-  name          TEXT NOT NULL UNIQUE,
-  note          TEXT,
-  -- NOT NULL with DEFAULT to the "Ungrouped" group (seeded below as id=1)
-  group_uuid    BLOB NOT NULL DEFAULT X'00000000000000000000000000000001',
-  created_at    INTEGER NOT NULL CHECK (created_at > 0),
-  updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
-  deleted_at    INTEGER,
-  version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
-  is_system     INTEGER NOT NULL DEFAULT 0 CHECK (is_system IN (0,1)),
-  FOREIGN KEY (group_uuid) REFERENCES category_group(uuid)
-    ON UPDATE RESTRICT
-    ON DELETE SET DEFAULT,
-  CHECK (updated_at >= created_at),
-  CHECK (deleted_at IS NULL OR deleted_at >= created_at)
+    id BLOB PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    note TEXT,
+    group_id BLOB NOT NULL REFERENCES category_group(id),
+    -- sync columns
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('subsec') * 1000 AS INTEGER)),
+    updated_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('subsec') * 1000 AS INTEGER)),
+    deleted_at INTEGER,
+    deleted_by_user BLOB,
+    deleted_by_device BLOB,
+    tombstone_reason TEXT,
+    CHECK (created_at <= updated_at)
 ) STRICT;
-
--- Protect system category from rename, regroup, or soft-delete
-CREATE TRIGGER IF NOT EXISTS category_bu_protect_system
-BEFORE UPDATE ON category
-FOR EACH ROW
-WHEN OLD.is_system = 1 AND (
-       NEW.name       <> OLD.name OR
-       NEW.group_uuid <> OLD.group_uuid OR
-       NEW.deleted_at IS NOT OLD.deleted_at
-     )
-BEGIN
-  SELECT RAISE(ABORT, 'system category cannot be renamed, moved, or soft-deleted');
-END;
-
-CREATE TRIGGER IF NOT EXISTS category_bd_protect_system
-BEFORE DELETE ON category
-FOR EACH ROW
-WHEN OLD.is_system = 1
-BEGIN
-  SELECT RAISE(ABORT, 'system category cannot be deleted');
-END;
-
--- Seed system rows with 16-byte BLOB UUIDs
-INSERT OR IGNORE INTO category (id, uuid, name, note, group_uuid, is_system, created_at, updated_at)
-VALUES (
-  1,
-  X'00000000000000000000000000000001',
-  'Uncategorized',
-  'Default catch-all category',
-  X'00000000000000000000000000000001',
-  1,
-  CAST(strftime('%s','now') AS INTEGER),
-  CAST(strftime('%s','now') AS INTEGER)
-);
-
--- ===== Entry =====
 CREATE TABLE IF NOT EXISTS entry (
-  id            INTEGER PRIMARY KEY,
-  uuid          BLOB NOT NULL UNIQUE,
-  name          TEXT NOT NULL,
-  start_time    INTEGER NOT NULL CHECK (start_time > 0),
-  end_time      INTEGER,
-  note          TEXT,
-  -- NOT NULL with DEFAULT to the "Uncategorized" category (seeded above as id=1)
-  category_uuid BLOB NOT NULL DEFAULT X'00000000000000000000000000000001',
-  created_at    INTEGER NOT NULL CHECK (created_at > 0),
-  updated_at    INTEGER NOT NULL CHECK (updated_at > 0),
-  deleted_at    INTEGER,
-  version       INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
-  FOREIGN KEY (category_uuid) REFERENCES category(uuid)
-    ON UPDATE RESTRICT
-    ON DELETE SET DEFAULT,
-  CHECK (end_time IS NULL OR end_time >= start_time),
-  CHECK (updated_at >= created_at),
-  CHECK (deleted_at IS NULL OR deleted_at >= created_at)
+    id BLOB PRIMARY KEY,
+    name TEXT NOT NULL,
+    note TEXT,
+    category_id BLOB NOT NULL REFERENCES category(id),
+    start_time INTEGER NOT NULL,
+    end_time INTEGER,
+    duration INTEGER GENERATED ALWAYS AS (
+        CASE
+            WHEN end_time IS NOT NULL THEN end_time - start_time
+        END
+    ) VIRTUAL,
+    -- sync columns
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('subsec') * 1000 AS INTEGER)),
+    updated_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('subsec') * 1000 AS INTEGER)),
+    deleted_at INTEGER,
+    deleted_by_user BLOB,
+    deleted_by_device BLOB,
+    tombstone_reason TEXT,
+    CHECK (created_at <= updated_at),
+    CHECK (
+        end_time IS NULL
+        OR start_time <= end_time
+    )
 ) STRICT;
-
--- ===== Indexes (soft-delete aware) =====
-CREATE INDEX IF NOT EXISTS idx_entry_active_start ON entry(start_time)                WHERE deleted_at IS NULL;
-CREATE INDEX IF NOT EXISTS idx_entry_cat_start    ON entry(category_uuid, start_time) WHERE deleted_at IS NULL;
-CREATE INDEX IF NOT EXISTS idx_entry_updated      ON entry(updated_at)                WHERE deleted_at IS NULL;
+-- ensure version increments and updated_at is set on update
+CREATE TRIGGER IF NOT EXISTS category_group_after_update
+AFTER
+UPDATE ON category_group FOR EACH ROW BEGIN
+UPDATE category_group
+SET version = CASE
+        WHEN NEW.version > OLD.version THEN NEW.version
+        ELSE OLD.version + 1
+    END,
+    updated_at = CAST(unixepoch('subsec') * 1000 AS INTEGER)
+WHERE id = OLD.id;
+END;
+CREATE TRIGGER IF NOT EXISTS category_after_update
+AFTER
+UPDATE ON category FOR EACH ROW BEGIN
+UPDATE category
+SET version = CASE
+        WHEN NEW.version > OLD.version THEN NEW.version
+        ELSE OLD.version + 1
+    END,
+    updated_at = CAST(unixepoch('subsec') * 1000 AS INTEGER)
+WHERE id = OLD.id;
+END;
+CREATE TRIGGER IF NOT EXISTS entry_after_update
+AFTER
+UPDATE ON entry FOR EACH ROW BEGIN
+UPDATE entry
+SET version = CASE
+        WHEN NEW.version > OLD.version THEN NEW.version
+        ELSE OLD.version + 1
+    END,
+    updated_at = CAST(unixepoch('subsec') * 1000 AS INTEGER)
+WHERE id = OLD.id;
+END;
+-- ensure deleted_at is set on update of deletion fields
+CREATE TRIGGER IF NOT EXISTS category_group_after_delete
+AFTER
+UPDATE OF deleted_by_user,
+    deleted_by_device,
+    tombstone_reason ON category_group FOR EACH ROW BEGIN
+UPDATE category_group
+SET deleted_at = CAST(unixepoch('subsec') * 1000 AS INTEGER)
+WHERE id = OLD.id;
+END;
+CREATE TRIGGER IF NOT EXISTS category_after_delete
+AFTER
+UPDATE OF deleted_by_user,
+    deleted_by_device,
+    tombstone_reason ON category FOR EACH ROW BEGIN
+UPDATE category
+SET deleted_at = CAST(unixepoch('subsec') * 1000 AS INTEGER)
+WHERE id = OLD.id;
+END;
+CREATE TRIGGER IF NOT EXISTS entry_after_delete
+AFTER
+UPDATE OF deleted_by_user,
+    deleted_by_device,
+    tombstone_reason ON entry FOR EACH ROW BEGIN
+UPDATE entry
+SET deleted_at = CAST(unixepoch('subsec') * 1000 AS INTEGER)
+WHERE id = OLD.id;
+END;
