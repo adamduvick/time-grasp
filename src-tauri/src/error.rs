@@ -18,6 +18,10 @@ pub enum Error {
     #[error("Database error: {0}")]
     Sqlx(#[from] sqlx::Error),
 
+    /// SQLx/database related errors.
+    #[error("Migration error: {0}")]
+    Migration(#[from] sqlx::migrate::MigrateError),
+
     /// Environment variable resolution errors (for example missing
     /// DATABASE_URL).
     #[error("Environment variable error: {0}")]

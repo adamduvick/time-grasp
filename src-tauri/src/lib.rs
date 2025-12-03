@@ -26,6 +26,21 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+#[tauri::command]
+async fn create_and_read_back_group(
+    app: tauri::AppHandle<tauri::Wry>,
+    name: &str,
+) -> error::Result<String> {
+    let data = model::CategoryGroupForCreate {
+        id: model::Uuid::new_v4(),
+        name: name.to_string(),
+        note: None,
+    };
+    let id = ipc::create_group(app.clone(), data).await?;
+    let group = ipc::read_group(app, id).await?;
+    Ok(format!("Category Group created: {:?}", group))
+}
+
 // #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> error::Result<()> {
     println!("loading store");
@@ -40,6 +55,7 @@ pub async fn run() -> error::Result<()> {
         .invoke_handler(tauri::generate_handler![
             // Greet
             greet,
+            create_and_read_back_group,
             // Category Group
             ipc::create_group,
             ipc::read_group,

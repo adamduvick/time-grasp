@@ -26,6 +26,10 @@ impl StoreManager {
     pub async fn new() -> Result<Self> {
         let conn_str = env::var("DATABASE_URL")?;
         let pool = SqlitePool::connect(&conn_str).await?;
+        sqlx::migrate!("./migrations").run(&pool).await?;
+        // if let Err(e) = seed_for_dev::seed_dev_db(&pool).await {
+        //     eprintln!("❌ Seeding skipped for the following reasons: {:?}", e);
+        // }
         Ok(Self { pool })
     }
 
