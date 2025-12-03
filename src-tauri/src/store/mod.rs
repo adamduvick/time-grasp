@@ -7,6 +7,7 @@ pub mod category;
 pub mod category_group;
 pub mod entry;
 pub mod manager;
+mod seed_for_dev;
 pub mod traits;
 
 pub use crate::error::Result;
