@@ -3,16 +3,7 @@ use leptos::{ev::SubmitEvent, prelude::*};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
-
-#[derive(Serialize, Deserialize)]
-struct GreetArgs<'a> {
-    name: &'a str,
-}
+use crate::ipc::create_and_read_back_group;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -32,13 +23,8 @@ pub fn App() -> impl IntoView {
                 return;
             }
 
-            let args = serde_wasm_bindgen::to_value(&GreetArgs { name: &name }).unwrap();
-            // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-            // let new_msg = invoke("greet", args).await.as_string().unwrap();
-            let new_msg = invoke("create_and_read_back_group", args)
-                .await
-                .as_string()
-                .unwrap();
+            let new_msg = create_and_read_back_group(&name).await.unwrap();
+
             set_greet_msg.set(new_msg);
         });
     };
