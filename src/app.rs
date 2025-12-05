@@ -23,9 +23,10 @@ pub fn App() -> impl IntoView {
                 return;
             }
 
-            let new_msg = create_and_read_back_group(&name).await.unwrap();
-
-            set_greet_msg.set(new_msg);
+            match create_and_read_back_group(&name).await {
+                Ok(result) => set_greet_msg.set(result),
+                Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
+            };
         });
     };
 
