@@ -15,7 +15,8 @@ use crate::model::{DurationMillis, EpochMillis};
 /// lifecycle timestamps used for creation, updates, and soft-deletion
 /// (tombstones). These types are primarily consumed by the
 /// persistence/store layer; fields are public for convenient inspection.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Entry {
     /// UUID primary key for the entry.
     pub id: Uuid,
@@ -67,7 +68,8 @@ pub struct Entry {
 /// This contains the minimal fields needed at insert time. Additional
 /// metadata such as timestamps and version are provided by the persistence
 /// layer.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryForCreate {
     /// UUID to use for the new entry (client-supplied IDs are supported).
     pub id: Uuid,
@@ -93,7 +95,8 @@ pub struct EntryForCreate {
 /// All non-id fields are optional so callers can provide only the fields
 /// they want to change. `note` and `end_time` use nested `Option` types to
 /// allow distinguishing between "no change" and "clear the value".
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryForUpdate {
     /// The UUID of the entry to update.
     pub id: Uuid,
@@ -118,7 +121,8 @@ pub struct EntryForUpdate {
 }
 
 /// Parameters required to delete (tombstone) an `Entry`.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryForDelete {
     /// The UUID of the entry to delete.
     pub id: Uuid,
@@ -131,7 +135,8 @@ pub struct EntryForDelete {
 ///
 /// Currently only supports filtering by id but can be extended with
 /// additional predicates as needed.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryFilter {
     /// Optional id to restrict queries to a single entry.
     pub id: Option<Uuid>,

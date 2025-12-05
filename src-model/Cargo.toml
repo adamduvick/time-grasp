@@ -7,7 +7,7 @@ edition = "2024"
 chrono = "0.4.42"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sqlx = { version = "0.8", features = [
+sqlx = { version = "0.8", optional = true, features = [
     "runtime-tokio",
     "macros",
     "sqlite",
@@ -15,4 +15,12 @@ sqlx = { version = "0.8", features = [
     "uuid",
     "chrono",
 ] }
-uuid = { version = "1", features = ["serde", "v4"] }
+uuid = { version = "1", optional = true, features = ["serde", "v4"] }
+
+[features]
+# Default to desktop which pulls in sqlx / sqlite and uuid for native builds
+default = ["desktop"]
+desktop = ["sqlx", "uuid"]
+# Web / wasm builds should opt into this feature which avoids pulling
+# in native-only crates like libsqlite3-sys, mio, etc.
+wasm = ["uuid/js", "uuid/serde"]

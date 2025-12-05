@@ -14,8 +14,7 @@ thiserror = "2.0.17"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 
-
-model = { path = "src-model" }
+model = { path = "src-model", features = ["wasm"], default-features = false }
 
 [workspace]
 members = ["src-tauri", "src-model"]

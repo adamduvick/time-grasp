@@ -14,7 +14,8 @@ use crate::model::EpochMillis;
 /// versioning, and lifecycle timestamps used for creation, updates, and
 /// soft-deletion (tombstones). These types are primarily consumed by the
 /// persistence/store layer; fields are public for convenient inspection.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryGroup {
     /// Stable UUID primary key for the category group.
     pub id: Uuid,
@@ -51,7 +52,8 @@ pub struct CategoryGroup {
 ///
 /// Contains only the fields required at insert time. Timestamps and
 /// server-generated metadata are added by the persistence layer.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryGroupForCreate {
     /// UUID to use for the new group (allows client-supplied IDs).
     pub id: Uuid,
@@ -68,7 +70,8 @@ pub struct CategoryGroupForCreate {
 /// All fields are optional so callers can supply only the values they want
 /// to change. `note` is an `Option<Option<String>>` to allow differentiating
 /// between "no change" (None) and "set to null/clear" (Some(None)).
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryGroupForUpdate {
     /// The UUID of the group to update.
     pub id: Uuid,
@@ -85,7 +88,8 @@ pub struct CategoryGroupForUpdate {
 ///
 /// The persistence layer uses this to mark a group as deleted and record
 /// a textual reason for the tombstone.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryGroupForDelete {
     /// The UUID of the group to delete.
     pub id: Uuid,
@@ -98,7 +102,8 @@ pub struct CategoryGroupForDelete {
 ///
 /// Currently minimal; supports filtering by id. Additional predicates can be
 /// added as needed for searches and list endpoints.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryGroupFilter {
     /// Optional id to restrict queries to a single group.
     pub id: Option<Uuid>,

@@ -15,10 +15,9 @@ use serde::{Deserialize, Serialize};
 /// A thin, transparent wrapper around `i64` representing a point in time
 /// measured in milliseconds. Provides convenience conversions to/from
 /// `chrono::DateTime<Utc>` and basic arithmetic with `DurationMillis`.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, sqlx::Type, Serialize, Deserialize,
-)]
-#[sqlx(transparent)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 pub struct EpochMillis(pub i64);
 
 impl EpochMillis {
@@ -54,10 +53,9 @@ impl From<EpochMillis> for DateTime<Utc> {
 /// Signed so negative durations are representable. This is a transparent
 /// wrapper around `i64` and interoperates with `EpochMillis` using the
 /// standard arithmetic operators implemented below.
-#[derive(
-    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, sqlx::Type, Serialize, Deserialize,
-)]
-#[sqlx(transparent)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 pub struct DurationMillis(pub i64);
 
 // time ± duration = time

@@ -15,7 +15,8 @@ use crate::model::EpochMillis;
 /// used for creation, updates, and soft-deletion (tombstones). These types
 /// are primarily consumed by the persistence/store layer; fields are public
 /// for convenient inspection.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Category {
     /// UUID primary key for the category.
     pub id: Uuid,
@@ -56,7 +57,8 @@ pub struct Category {
 /// This contains the minimal fields needed at insert time. Additional
 /// metadata such as timestamps and version are provided by the persistence
 /// layer.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryForCreate {
     /// UUID to use for the new category (client-supplied IDs are supported).
     pub id: Uuid,
@@ -76,7 +78,8 @@ pub struct CategoryForCreate {
 /// All non-id fields are optional so callers can provide only the fields
 /// they want to change. `note` uses `Option<Option<String>>` to allow
 /// distinguishing between "no change" and "clear note".
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryForUpdate {
     /// The UUID of the category to update.
     pub id: Uuid,
@@ -93,7 +96,8 @@ pub struct CategoryForUpdate {
 }
 
 /// Parameters required to delete (tombstone) a `Category`.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryForDelete {
     /// The UUID of the category to delete.
     pub id: Uuid,
@@ -106,7 +110,8 @@ pub struct CategoryForDelete {
 ///
 /// Currently only supports filtering by id but can be extended with
 /// additional predicates as needed.
-#[derive(Debug, Clone, sqlx::FromRow, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CategoryFilter {
     /// Optional id to restrict queries to a single category.
     pub id: Option<Uuid>,
