@@ -49,8 +49,10 @@ impl StoreManager {
         //
         // The `sqlx::migrate!()` macro embeds migration metadata at compile time.
         sqlx::migrate!("./migrations").run(&pool).await?;
-        if let Err(e) = crate::store::seed_for_dev::seed_for_dev(&pool).await {
-            eprintln!("❌ Seeding skipped for the following reasons: {:?}", e);
+        println!("➡️ Seeding dev db");
+        match crate::store::seed_for_dev::seed_for_dev(&pool).await {
+            Ok(_) => println!("✅ Completed seeding dev db"),
+            Err(e) => eprintln!("❌ Seeding skipped for the following reasons: {:?}", e),
         }
         Ok(Self { pool })
     }
