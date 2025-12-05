@@ -3,7 +3,7 @@ use leptos::{ev::SubmitEvent, prelude::*};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-use crate::ipc::create_and_read_back_group;
+use crate::ipc::{create_and_read_back_group, create_group_by_name};
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -27,6 +27,10 @@ pub fn App() -> impl IntoView {
                 Ok(result) => set_greet_msg.set(result),
                 Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
             };
+            // match create_group_by_name(&name).await {
+            //     Ok(result) => set_greet_msg.set(format!("Result: {}", result)),
+            //     Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
+            // };
         });
     };
 

@@ -13,7 +13,7 @@ struct CreateEntryArgs {
 pub async fn create_entry(data: C_Entry) -> Result<Uuid> {
     const CMD: &'static str = "create_entry";
     let wrapped_args = CreateEntryArgs { data };
-    invoke_typed(CMD, wrapped_args).await?
+    invoke_typed(CMD, wrapped_args).await
 }
 
 #[derive(Serialize)]
@@ -24,7 +24,7 @@ struct ReadEntryArgs {
 pub async fn read_entry(id: Uuid) -> Result<R_Entry> {
     const CMD: &'static str = "read_entry";
     let wrapped_args = ReadEntryArgs { id };
-    invoke_typed(CMD, wrapped_args).await?
+    invoke_typed(CMD, wrapped_args).await
 }
 
 #[derive(Serialize)]
@@ -35,7 +35,7 @@ struct ListEntryArgs {
 pub async fn list_entry(filter: EntryFilter) -> Result<Vec<R_Entry>> {
     const CMD: &'static str = "list_entry";
     let wrapped_args = ListEntryArgs { filter };
-    invoke_typed(CMD, wrapped_args).await?
+    invoke_typed(CMD, wrapped_args).await
 }
 
 #[derive(Serialize)]
@@ -46,7 +46,7 @@ struct UpdateEntryArgs {
 pub async fn update_entry(data: U_Entry) -> Result<Uuid> {
     const CMD: &'static str = "update_entry";
     let wrapped_args = UpdateEntryArgs { data };
-    invoke_typed(CMD, wrapped_args).await?
+    invoke_typed(CMD, wrapped_args).await
 }
 
 #[derive(Serialize)]
@@ -57,5 +57,5 @@ struct DeleteEntryArgs {
 pub async fn delete_entry(data: D_Entry) -> Result<Uuid> {
     const CMD: &'static str = "delete_entry";
     let wrapped_args = DeleteEntryArgs { data };
-    invoke_typed(CMD, wrapped_args).await?
+    invoke_typed(CMD, wrapped_args).await
 }
