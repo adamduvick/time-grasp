@@ -18,8 +18,8 @@
 use async_trait::async_trait;
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
-use crate::model::Uuid;
 use crate::store::Result;
+use model::Uuid;
 
 /// Trait for creating/persisting a new entity into storage.
 ///

@@ -3,8 +3,8 @@ use chrono::Utc;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
-use crate::model::*;
 use crate::store::*;
+use model::model::*;
 
 struct Tree {
     items: Vec<GroupStruct>,

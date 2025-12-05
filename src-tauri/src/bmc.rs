@@ -11,8 +11,8 @@ use serde::Serialize;
 
 use crate::ctx::Ctx;
 use crate::error::Result;
-use crate::model::*;
 use crate::store::*;
+use model::model::*;
 
 /// Helper to build a `HubEvent` for BMC operations.
 fn hub_event<D: Serialize + Clone>(

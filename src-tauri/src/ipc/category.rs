@@ -11,7 +11,7 @@ use tauri::Wry;
 use crate::bmc::CategoryBmc;
 use crate::ctx::Ctx;
 use crate::error::Result;
-use crate::model::*;
+use model::model::*;
 
 /// Create a new category.
 ///

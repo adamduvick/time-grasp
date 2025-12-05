@@ -17,7 +17,6 @@ pub mod bmc;
 pub mod ctx;
 pub mod error;
 pub mod ipc;
-pub mod model;
 pub mod store;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/

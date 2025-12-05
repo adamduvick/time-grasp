@@ -18,8 +18,8 @@ use std::sync::Arc;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Wry};
 
-use crate::model::event::HubEvent;
 use crate::store::StoreManager;
+use model::HubEvent;
 
 pub struct Ctx {
     store_manager: Arc<StoreManager>,

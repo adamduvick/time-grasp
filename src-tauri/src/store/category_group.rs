@@ -5,8 +5,8 @@
 use async_trait::async_trait;
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
-use crate::model::*;
 use crate::store::*;
+use model::model::*;
 
 #[async_trait]
 impl Creatable<C_Group> for C_Group {
@@ -134,7 +134,7 @@ impl Deletable<D_Group> for D_Group {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::model::EpochMillis;
+    use model::model::EpochMillis;
 
     use super::*;
 
