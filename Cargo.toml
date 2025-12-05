@@ -17,4 +17,4 @@ wasm-bindgen-futures = "0.4"
 model = { path = "src-model", features = ["wasm"], default-features = false }
 
 [workspace]
-members = ["src-tauri", "src-model"]
+members = ["src-tauri", "src-model", "src-backend", "src-frontend"]
