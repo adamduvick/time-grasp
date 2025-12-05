@@ -20,3 +20,6 @@ reload_database:
 
 test_backend_model:
     cargo test --package time-grasp model:: -- --test-threads=1
+
+test:
+    cargo test --workspace --all-targets
