@@ -11,7 +11,7 @@ use tauri::Wry;
 use crate::bmc::EntryBmc;
 use crate::ctx::Ctx;
 use crate::error::Result;
-use model::model::*;
+use model::*;
 
 /// Create a new entry.
 ///

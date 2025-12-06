@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 use uuid::Uuid;
 
 use crate::store::*;
-use model::model::*;
+use model::*;
 
 pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool) -> Result<()> {
     let group_names = vec!["😋 Wants", "🛒 Needs", "🏆 Goals"];

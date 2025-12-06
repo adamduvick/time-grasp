@@ -13,7 +13,7 @@ ios_reload_proj:
 ios_cleanup:
     rm -rf /Users/adamduvick/Library/Developer/Xcode/DerivedData/time-grasp*
 
-[working-directory('src-tauri')]
+[working-directory('src-backend')]
 reload_database:
     rm -rf .sqlx dev.db
     cargo sqlx db create && cargo sqlx migrate run && cargo sqlx prepare

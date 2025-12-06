@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::model::{DurationMillis, EpochMillis};
+use crate::{DurationMillis, EpochMillis};
 
 /// A recorded time entry in the system.
 ///

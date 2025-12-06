@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::model::EpochMillis;
+use crate::EpochMillis;
 
 /// A full representation of a category group as stored in the database.
 ///

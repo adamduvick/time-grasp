@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::model::EpochMillis;
+use crate::EpochMillis;
 
 /// A complete category record as stored in the database.
 ///

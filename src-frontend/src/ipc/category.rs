@@ -1,4 +1,4 @@
-use model::model::*;
+use model::*;
 
 use serde::Serialize;
 

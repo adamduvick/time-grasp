@@ -6,7 +6,7 @@ mod support;
 pub use category::*;
 pub use category_group::*;
 pub use entry::*;
-pub use model::model::*;
+pub use model::*;
 
 // TODO remove once tested
 #[derive(serde::Serialize)]

@@ -13,11 +13,15 @@
 
 use std::sync::Arc;
 
-pub mod bmc;
-pub mod ctx;
-pub mod error;
-pub mod ipc;
-pub mod store;
+// pub mod bmc;
+// pub mod ctx;
+// pub mod error;
+// pub mod ipc;
+// pub mod store;
+
+use backend::error;
+use backend::ipc;
+use backend::store;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
