@@ -7,56 +7,7 @@ use uuid::Uuid;
 use crate::store::*;
 use model::*;
 
-pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool) -> Result<()> {
-    let group_names = vec!["😋 Wants", "🛒 Needs", "🏆 Goals"];
-    let wants_category_names = vec!["🏐 Sports", "🎱 Rec and Leisure", "🍿 TV and Movies"];
-    let needs_category_names = vec![
-        "💼 Work",
-        "🛌 Sleep",
-        "👨🏼‍🔧 Chores",
-        "🌹 Romance",
-        "🫶🏼 Friends",
-        "🏡 Family",
-        "🧼 Personal Care",
-    ];
-    let goals_category_names = vec![
-        "🎸 Guitar",
-        "🎹 Piano",
-        "🎓 Grad School",
-        "📚 Reading",
-        "💪🏼 Exercise",
-    ];
-
-    let group_id = C_Group::create(
-        &pool,
-        C_Group {
-            id: Uuid::new_v4(),
-            name: group_names.get(0).unwrap().to_string(),
-            note: None,
-        },
-    );
-
-    let tree = Tree {
-        items: vec![GroupStruct {
-            name: "😋 Wants",
-            note: None,
-            categories: vec![CategoryStruct {
-                name: "🏐 Sports",
-                note: None,
-                entries: vec![EntryStruct {
-                    name: "Volleyball",
-                    note: None,
-                    start_time: dt("2025-12-05T20:45"),
-                    end_time: Some(dt("2025-12-05T22:05")),
-                }],
-            }],
-        }],
-    };
-
-    tree.build_and_insert(pool).await
-}
-
-// -- region: insert helpers
+// region:      --- insert helpers
 
 struct Tree {
     items: Vec<GroupStruct>,
@@ -147,4 +98,119 @@ fn dt(dt_str: &str) -> DateTime<Utc> {
         .and_utc()
 }
 
-// -- endregion: insert helpers
+// endregion:   --- insert helpers
+
+// region:      --- example data
+
+fn representative_example() -> Tree {
+    let tree = Tree {
+        items: vec![
+            GroupStruct {
+                name: "😋 Wants",
+                note: None,
+                categories: vec![
+                    CategoryStruct {
+                        name: "🏐 Sports",
+                        note: None,
+                        entries: vec![EntryStruct {
+                            name: "Volleyball",
+                            note: None,
+                            start_time: dt("2025-12-05T20:45"),
+                            end_time: Some(dt("2025-12-05T22:05")),
+                        }],
+                    },
+                    CategoryStruct {
+                        name: "🎱 Rec and Leisure",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🍿 TV and Movies",
+                        note: None,
+                        entries: vec![],
+                    },
+                ],
+            },
+            GroupStruct {
+                name: "🛒 Needs",
+                note: None,
+                categories: vec![
+                    CategoryStruct {
+                        name: "💼 Work",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🛌 Sleep",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "👨🏼‍🔧 Chores",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🌹 Romance",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🫶🏼 Friends",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🏡 Family",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🧼 Personal Care",
+                        note: None,
+                        entries: vec![],
+                    },
+                ],
+            },
+            GroupStruct {
+                name: "🏆 Goals",
+                note: None,
+                categories: vec![
+                    CategoryStruct {
+                        name: "🎸 Guitar",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🎹 Piano",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "🎓 Grad School",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "📚 Reading",
+                        note: None,
+                        entries: vec![],
+                    },
+                    CategoryStruct {
+                        name: "💪🏼 Exercise",
+                        note: None,
+                        entries: vec![],
+                    },
+                ],
+            },
+        ],
+    };
+
+    tree
+}
+
+// endregion:   --- example data
+
+pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool) -> Result<()> {
+    representative_example().build_and_insert(pool).await
+}
