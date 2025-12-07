@@ -1,5 +1,7 @@
 use chrono::DateTime;
+use chrono::Months;
 use chrono::NaiveDateTime;
+use chrono::TimeDelta;
 use chrono::Utc;
 use sqlx::SqlitePool;
 use uuid::Uuid;
@@ -9,27 +11,27 @@ use model::*;
 
 // region:      --- insert helpers
 
-struct Tree {
-    items: Vec<GroupStruct>,
+struct Tree<S: Into<String>> {
+    items: Vec<GroupStruct<S>>,
 }
-struct GroupStruct {
-    name: &'static str,
-    note: Option<&'static str>,
-    categories: Vec<CategoryStruct>,
+struct GroupStruct<S: Into<String>> {
+    name: S,
+    note: Option<S>,
+    categories: Vec<CategoryStruct<S>>,
 }
-struct CategoryStruct {
-    name: &'static str,
-    note: Option<&'static str>,
-    entries: Vec<EntryStruct>,
+struct CategoryStruct<S: Into<String>> {
+    name: S,
+    note: Option<S>,
+    entries: Vec<EntryStruct<S>>,
 }
-struct EntryStruct {
-    name: &'static str,
-    note: Option<&'static str>,
+struct EntryStruct<S: Into<String>> {
+    name: S,
+    note: Option<S>,
     start_time: DateTime<Utc>,
     end_time: Option<DateTime<Utc>>,
 }
 
-impl Tree {
+impl<S: Into<String>> Tree<S> {
     async fn build_and_insert(self, pool: &SqlitePool) -> Result<()> {
         for group_params in self.items.into_iter() {
             let GroupStruct {
@@ -102,7 +104,7 @@ fn dt(dt_str: &str) -> DateTime<Utc> {
 
 // region:      --- example data
 
-fn representative_example() -> Tree {
+fn representative_example<S: Into<String>>() -> Tree<&'static str> {
     let tree = Tree {
         items: vec![
             GroupStruct {
@@ -209,8 +211,58 @@ fn representative_example() -> Tree {
     tree
 }
 
+use rand::prelude::IndexedMutRandom;
+
+fn random_item_mut<T>(v: &mut Vec<T>) -> &mut T {
+    let mut rng = rand::rng();
+    v.choose_mut(&mut rng).unwrap()
+}
+
+fn random_data<S: Into<String>>() -> Tree<String> {
+    let mut tree = Tree { items: vec![] };
+
+    let (n_groups, n_categories, n_entries) = (5, 25, 1000);
+    let mut durations = vec![15, 30, 60, 120, 240, 480];
+    let time_counter = Utc::now().checked_sub_months(Months::new(3)).unwrap();
+
+    for i in 0..n_groups {
+        tree.items.push(GroupStruct {
+            name: format!("Group {}", i + 1),
+            note: None,
+            categories: vec![],
+        });
+    }
+    for i in 0..n_categories {
+        let group = random_item_mut(&mut tree.items);
+        group.categories.push(CategoryStruct {
+            name: format!("Category {}", i + 1),
+            note: None,
+            entries: vec![],
+        })
+    }
+    for i in 0..n_entries {
+        let group = random_item_mut(&mut tree.items);
+        let category = random_item_mut(&mut group.categories);
+        let duration = random_item_mut(&mut durations).clone() * 60;
+        let start_time = time_counter.clone();
+        let end_time = start_time.checked_add_signed(TimeDelta::new(duration, 0).unwrap());
+        let time_counter = end_time.clone();
+        category.entries.push(EntryStruct {
+            name: format!("Entry {}", i + 1),
+            note: None,
+            start_time,
+            end_time,
+        })
+    }
+
+    tree
+}
+
 // endregion:   --- example data
 
 pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool) -> Result<()> {
-    representative_example().build_and_insert(pool).await
+    // representative_example::<&'static str>()
+    //     .build_and_insert(pool)
+    //     .await
+    random_data::<String>().build_and_insert(pool).await
 }
