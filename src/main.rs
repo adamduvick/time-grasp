@@ -1,3 +1,5 @@
+//! TODO: document main workspaces here so that building the docs for the ui allows for easy
+//! navigation to the rest of the app code
 use frontend::app::*;
 use leptos::prelude::*;
 
