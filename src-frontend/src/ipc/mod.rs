@@ -28,3 +28,8 @@ pub async fn create_group_by_name(name: &str) -> crate::error::Result<Uuid> {
     };
     create_group(data).await
 }
+
+pub async fn list_all_groups() -> crate::error::Result<Vec<R_Group>> {
+    let filter = CategoryGroupFilter { id: None };
+    list_group(filter).await
+}
