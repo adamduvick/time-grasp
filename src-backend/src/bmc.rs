@@ -14,6 +14,8 @@ use crate::error::Result;
 use crate::store::*;
 use model::*;
 
+// region:      --- BMC helpers
+
 /// Helper to build a `HubEvent` for BMC operations.
 fn hub_event<D: Serialize + Clone>(
     entity: &'static str,
@@ -75,6 +77,8 @@ async fn delete<D: Deletable<D>>(ctx: Arc<Ctx>, entity: &'static str, data: D) -
     Ok(id)
 }
 
+// endregion:   --- BMC helpers
+
 /// Backend-model-controller for `CategoryGroup` operations.
 ///
 /// Thin wrapper around the generic CRUD helpers that provides typed
@@ -110,7 +114,10 @@ impl GroupBmc {
     }
 }
 
-/// Backend-model-controller for `Category` operations.
+/// Backend-model-controller for `CategoryGroup` operations.
+///
+/// Thin wrapper around the generic CRUD helpers that provides typed
+/// methods used by IPC handlers.
 pub struct CategoryBmc;
 
 impl CategoryBmc {
@@ -142,7 +149,10 @@ impl CategoryBmc {
     }
 }
 
-/// Backend-model-controller for `Entry` operations.
+/// Backend-model-controller for `CategoryGroup` operations.
+///
+/// Thin wrapper around the generic CRUD helpers that provides typed
+/// methods used by IPC handlers.
 pub struct EntryBmc;
 
 impl EntryBmc {
