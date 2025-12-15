@@ -11,7 +11,7 @@ use model::*;
 
 #[async_trait]
 impl Creatable<C_Category> for C_Category {
-    async fn create(pool: &SqlitePool, entity: C_Category) -> Result<Uuid> {
+    async fn create(pool: &SqlitePool, entity: Self) -> Result<Uuid> {
         sqlx::query(
             "INSERT INTO category (
                 id,
@@ -51,7 +51,7 @@ impl Readable<R_Category> for R_Category {
         FROM category
     "#;
 
-    async fn read(pool: &SqlitePool, id: Uuid) -> Result<R_Category> {
+    async fn read(pool: &SqlitePool, id: Uuid) -> Result<Self> {
         let mut qb = QueryBuilder::new(Self::BASE_SELECT);
         let filter = Self::Filter::new().id(Some(id));
         filter.apply(&mut qb);
@@ -60,7 +60,7 @@ impl Readable<R_Category> for R_Category {
         Ok(entity)
     }
 
-    async fn list(pool: &SqlitePool, filter: Self::Filter) -> Result<Vec<R_Category>> {
+    async fn list(pool: &SqlitePool, filter: Self::Filter) -> Result<Vec<Self>> {
         let mut qb = QueryBuilder::new(Self::BASE_SELECT);
         filter.apply(&mut qb);
         let entities = qb.build_query_as().fetch_all(pool).await?;
@@ -83,8 +83,8 @@ impl Filterable for CategoryFilter {
 
 #[async_trait]
 impl Updatable<U_Category> for U_Category {
-    async fn update(pool: &SqlitePool, entity: U_Category) -> Result<Uuid> {
-        let U_Category {
+    async fn update(pool: &SqlitePool, entity: Self) -> Result<Uuid> {
+        let Self {
             id,
             name,
             note,
@@ -127,7 +127,7 @@ impl Updatable<U_Category> for U_Category {
 
 #[async_trait]
 impl Deletable<D_Category> for D_Category {
-    async fn delete(pool: &SqlitePool, entity: D_Category) -> Result<Uuid> {
+    async fn delete(pool: &SqlitePool, entity: Self) -> Result<Uuid> {
         sqlx::query(
             "UPDATE category SET 
                 deleted_by_user = ?, 

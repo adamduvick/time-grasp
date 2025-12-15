@@ -76,7 +76,7 @@ impl Sub<DurationMillis> for EpochMillis {
 // time - time = duration
 impl Sub for EpochMillis {
     type Output = DurationMillis;
-    fn sub(self, rhs: Self) -> DurationMillis {
+    fn sub(self, rhs: Self) -> Self::Output {
         DurationMillis(self.0 - rhs.0)
     }
 }
