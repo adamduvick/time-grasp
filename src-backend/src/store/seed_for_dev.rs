@@ -57,7 +57,7 @@ impl<S: Into<String>> Tree<S> {
                         note: entry_fields.note.map(|note| note.into()),
                         start_time: entry_fields.start_time.into(),
                         end_time: entry_fields.end_time.map(|end_time| end_time.into()),
-                            category_id,
+                        category_id,
                     };
                     let _entry_id = C_Entry::create(pool, entry).await?;
                 }
@@ -197,11 +197,11 @@ fn random_data<S: Into<String>>() -> Tree<String> {
 
     let (n_groups, n_categories, n_entries) = (5, 25, 1000);
     let mut durations = vec![15, 30, 60, 120, 240, 480];
-    let time_counter = Utc::now().checked_sub_months(Months::new(3)).unwrap();
+    let mut time_counter = Utc::now().checked_sub_months(Months::new(3)).unwrap();
 
     for i in 0..n_groups {
         tree.items.push(GroupStruct {
-            name: format!("Group {}", i + 1),
+            name: format!("Group {:04}", i + 1),
             note: None,
             categories: vec![],
         });
@@ -209,7 +209,7 @@ fn random_data<S: Into<String>>() -> Tree<String> {
     for i in 0..n_categories {
         let group = random_item_mut(&mut tree.items);
         group.categories.push(CategoryStruct {
-            name: format!("Category {}", i + 1),
+            name: format!("Category {:04}", i + 1),
             note: None,
             entries: vec![],
         })
@@ -219,13 +219,15 @@ fn random_data<S: Into<String>>() -> Tree<String> {
         let category = random_item_mut(&mut group.categories);
         let duration = random_item_mut(&mut durations).clone() * 60;
         let start_time = time_counter.clone();
-        let end_time = start_time.checked_add_signed(TimeDelta::new(duration, 0).unwrap());
-        let time_counter = end_time.clone();
+        let end_time = start_time
+            .checked_add_signed(TimeDelta::new(duration, 0).unwrap())
+            .unwrap();
+        time_counter = end_time.clone();
         category.entries.push(EntryStruct {
-            name: format!("Entry {}", i + 1),
+            name: format!("Entry {:04}", i + 1),
             note: None,
             start_time,
-            end_time,
+            end_time: Some(end_time),
         })
     }
 
