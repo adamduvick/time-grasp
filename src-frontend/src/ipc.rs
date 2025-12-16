@@ -7,10 +7,16 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
+    /// This is needed to invoke a tauri command from the frontend
+    ///
+    /// Everything must be serializable so as to pass through the IPC
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"], catch)]
     async fn invoke(cmd: &str, args: JsValue) -> std::result::Result<JsValue, JsValue>;
 }
 
+/// Since `invoke` only accepts and returns `JsValue` types, this generic wrapper is
+/// needed to define type-safe calls in the front end. Not necessary, but it's nicer
+/// to work with the real types from the `model` library and it saves a lot of boilerplate
 async fn invoke_typed<Args, Output>(cmd: &str, args: Args) -> Result<Output>
 where
     Args: serde::Serialize,
@@ -25,9 +31,17 @@ where
     Ok(rust_resp)
 }
 
+/// This macro assumes:
+///
+/// 1. the signature of the function perfectly mirrors the signature of the `tauri::command`
+///    in the backend (except the state automatically injected as an argument)
+/// 2. the name of the function is identical to the name of the corresponding `tauri::commmand`
+///
+/// If these assumptions hold true, this macro helps to easily create a mirroring function
 #[macro_export]
 macro_rules! ipc_call {
-    (pub async fn $name:ident ( $( $arg:ident : $ty:ty ),* $(,)? ) -> $ret:ty ) => {
+    ($name:ident ( $( $arg:ident : $ty:ty ),* $(,)? ) -> $ret:ty ) => {
+        /// Mirror to a correponding `tauri::command` of the same name in the backend
         pub async fn $name( $( $arg : $ty ),* ) -> $ret {
             const CMD: &'static str = stringify!($name);
 
@@ -44,20 +58,20 @@ macro_rules! ipc_call {
 
 // endregion:       IPC helpers
 
-ipc_call!(pub async fn create_group(data: C_Group) -> Result<Uuid>);
-ipc_call!(pub async fn read_group(id: Uuid) -> Result<R_Group>);
-ipc_call!(pub async fn list_group(filter: CategoryGroupFilter) -> Result<Vec<R_Group>>);
-ipc_call!(pub async fn update_group(data: U_Group) -> Result<Uuid>);
-ipc_call!(pub async fn delete_group(data: D_Group) -> Result<Uuid>);
+ipc_call!(create_group(data: C_Group) -> Result<Uuid>);
+ipc_call!(read_group(id: Uuid) -> Result<R_Group>);
+ipc_call!(list_group(filter: CategoryGroupFilter) -> Result<Vec<R_Group>>);
+ipc_call!(update_group(data: U_Group) -> Result<Uuid>);
+ipc_call!(delete_group(data: D_Group) -> Result<Uuid>);
 
-ipc_call!(pub async fn create_category(data: C_Category) -> Result<Uuid>);
-ipc_call!(pub async fn read_category(id: Uuid) -> Result<R_Category>);
-ipc_call!(pub async fn list_category(filter: CategoryFilter) -> Result<Vec<R_Category>>);
-ipc_call!(pub async fn update_category(data: U_Category) -> Result<Uuid>);
-ipc_call!(pub async fn delete_category(data: D_Category) -> Result<Uuid>);
+ipc_call!(create_category(data: C_Category) -> Result<Uuid>);
+ipc_call!(read_category(id: Uuid) -> Result<R_Category>);
+ipc_call!(list_category(filter: CategoryFilter) -> Result<Vec<R_Category>>);
+ipc_call!(update_category(data: U_Category) -> Result<Uuid>);
+ipc_call!(delete_category(data: D_Category) -> Result<Uuid>);
 
-ipc_call!(pub async fn create_entry(data: C_Entry) -> Result<Uuid>);
-ipc_call!(pub async fn read_entry(id: Uuid) -> Result<R_Entry>);
-ipc_call!(pub async fn list_entry(filter: EntryFilter) -> Result<Vec<R_Entry>>);
-ipc_call!(pub async fn update_entry(data: U_Entry) -> Result<Uuid>);
-ipc_call!(pub async fn delete_entry(data: D_Entry) -> Result<Uuid>);
+ipc_call!(create_entry(data: C_Entry) -> Result<Uuid>);
+ipc_call!(read_entry(id: Uuid) -> Result<R_Entry>);
+ipc_call!(list_entry(filter: EntryFilter) -> Result<Vec<R_Entry>>);
+ipc_call!(update_entry(data: U_Entry) -> Result<Uuid>);
+ipc_call!(delete_entry(data: D_Entry) -> Result<Uuid>);

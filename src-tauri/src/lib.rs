@@ -41,7 +41,7 @@ pub async fn run() -> error::Result<()> {
             ipc::list_category,
             ipc::update_category,
             ipc::delete_category,
-            // Category
+            // Entry
             ipc::create_entry,
             ipc::read_entry,
             ipc::list_entry,
