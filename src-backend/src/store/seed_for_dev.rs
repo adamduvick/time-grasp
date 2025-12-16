@@ -33,59 +33,33 @@ struct EntryStruct<S: Into<String>> {
 
 impl<S: Into<String>> Tree<S> {
     async fn build_and_insert(self, pool: &SqlitePool) -> Result<()> {
-        for group_params in self.items.into_iter() {
-            let GroupStruct {
-                name,
-                note,
-                categories,
-            } = group_params;
+        for group_fields in self.items.into_iter() {
+            let group = C_Group {
+                id: Uuid::new_v4(),
+                name: group_fields.name.into(),
+                note: group_fields.note.map(|note| note.into()),
+            };
+            let group_id = C_Group::create(pool, group).await?;
 
-            let group_id = C_Group::create(
-                pool,
-                C_Group {
+            for category_fields in group_fields.categories.into_iter() {
+                let category = C_Category {
                     id: Uuid::new_v4(),
-                    name: name.into(),
-                    note: note.map(|note| note.into()),
-                },
-            )
-            .await?;
+                    name: category_fields.name.into(),
+                    note: category_fields.note.map(|note| note.into()),
+                    group_id,
+                };
+                let category_id = C_Category::create(pool, category).await?;
 
-            for category_params in categories.into_iter() {
-                let CategoryStruct {
-                    name,
-                    note,
-                    entries,
-                } = category_params;
-                let category_id = C_Category::create(
-                    pool,
-                    C_Category {
+                for entry_fields in category_fields.entries.into_iter() {
+                    let entry = C_Entry {
                         id: Uuid::new_v4(),
-                        name: name.into(),
-                        note: note.map(|note| note.into()),
-                        group_id,
-                    },
-                )
-                .await?;
-
-                for entry_params in entries.into_iter() {
-                    let EntryStruct {
-                        name,
-                        note,
-                        start_time,
-                        end_time,
-                    } = entry_params;
-                    let id = C_Entry::create(
-                        pool,
-                        C_Entry {
-                            id: Uuid::new_v4(),
-                            name: name.into(),
-                            note: note.map(|note| note.into()),
-                            start_time: start_time.into(),
-                            end_time: end_time.map(|end_time| end_time.into()),
+                        name: entry_fields.name.into(),
+                        note: entry_fields.note.map(|note| note.into()),
+                        start_time: entry_fields.start_time.into(),
+                        end_time: entry_fields.end_time.map(|end_time| end_time.into()),
                             category_id,
-                        },
-                    )
-                    .await?;
+                    };
+                    let _entry_id = C_Entry::create(pool, entry).await?;
                 }
             }
         }
