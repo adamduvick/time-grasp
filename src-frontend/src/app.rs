@@ -1,9 +1,10 @@
 use leptos::task::spawn_local;
 use leptos::{ev::SubmitEvent, prelude::*};
+use model::*;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-use crate::ipc::{create_and_read_back_group, create_group_by_name, list_all_groups};
+use crate::ipc::*;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -23,19 +24,22 @@ pub fn App() -> impl IntoView {
                 return;
             }
 
-            // match create_and_read_back_group(&name).await {
-            //     Ok(result) => set_greet_msg.set(result),
-            //     Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
-            // };
-            let _ = create_group_by_name(&name).await;
-            match list_all_groups().await {
-                Ok(categories) => set_greet_msg.set(
-                    categories
-                        .into_iter()
-                        .map(|c| format!("{:?}", c))
-                        .collect::<Vec<_>>()
-                        .join("\n"),
-                ),
+            let group = C_Group {
+                id: Uuid::new_v4(),
+                name,
+                note: None,
+            };
+            match create_group(group).await {
+                Ok(id) => match list_group(CategoryGroupFilter { id: None }).await {
+                    Ok(categories) => set_greet_msg.set(
+                        categories
+                            .into_iter()
+                            .map(|c| format!("{:?}", c))
+                            .collect::<Vec<_>>()
+                            .join("\n"),
+                    ),
+                    Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
+                },
                 Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
             }
         });
