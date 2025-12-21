@@ -7,8 +7,8 @@
 use std::{env, str::FromStr};
 
 use sqlx::{
-    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
     SqlitePool,
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
 };
 
 use crate::store::Result;
@@ -49,9 +49,10 @@ impl StoreManager {
         //
         // The `sqlx::migrate!()` macro embeds migration metadata at compile time.
         sqlx::migrate!("./migrations").run(&pool).await?;
-        println!("➡️ Seeding dev db");
-        match crate::store::seed_for_dev::seed_for_dev(&pool).await {
-            Ok(_) => println!("✅ Completed seeding dev db"),
+        let seed_type = crate::store::seed_for_dev::SeedType::Random;
+        println!("➡️ Seeding dev db with {:?}", seed_type);
+        match crate::store::seed_for_dev::seed_for_dev(&pool, seed_type).await {
+            Ok(_) => println!("✅ Completed seeding dev db with {:?}", seed_type),
             Err(e) => eprintln!("❌ Seeding skipped for the following reasons: {:?}", e),
         }
         Ok(Self { pool })

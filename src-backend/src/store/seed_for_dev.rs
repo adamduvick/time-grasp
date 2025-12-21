@@ -236,9 +236,19 @@ fn random_data<S: Into<String>>() -> Tree<String> {
 
 // endregion:   --- example data
 
-pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool) -> Result<()> {
-    // representative_example::<&'static str>()
-    //     .build_and_insert(pool)
-    //     .await
-    random_data::<String>().build_and_insert(pool).await
+#[derive(Debug, Copy, Clone)]
+pub(in crate::store) enum SeedType {
+    Representative,
+    Random,
+}
+
+pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool, seed_type: SeedType) -> Result<()> {
+    match seed_type {
+        SeedType::Representative => {
+            representative_example::<&'static str>()
+                .build_and_insert(pool)
+                .await
+        }
+        SeedType::Random => random_data::<String>().build_and_insert(pool).await,
+    }
 }
