@@ -27,12 +27,15 @@ impl StoreManager {
     /// Create a new `StoreManager` by connecting to the database URL found
     /// in the `DATABASE_URL` environment variable.
     pub async fn new() -> Result<Self> {
+        println!("entered store::StoreManager::new()");
+
         // Path to your SQLite database file.
         // ":memory:" for in-memory; "time_grasp.db" for persistent file.
-        let database_url = env::var("DATABASE_URL")?;
+        // let database_url = env::var("DATABASE_URL")?;
+        let database_url = ":memory:".to_string();
 
         // Helpful diagnostics
-        eprintln!("DB path: {}", database_url.clone());
+        println!("DB path: {}", database_url.clone());
 
         let opts = SqliteConnectOptions::from_str(&database_url)?
             .create_if_missing(true)

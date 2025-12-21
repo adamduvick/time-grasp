@@ -17,7 +17,7 @@ use backend::error;
 use backend::ipc;
 use backend::store;
 
-// #[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> error::Result<()> {
     println!("loading store");
     let store_manager = store::StoreManager::new().await?;

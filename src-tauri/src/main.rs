@@ -3,7 +3,10 @@
 
 #[tokio::main]
 async fn main() -> backend::error::Result<()> {
-    time_grasp_lib::run().await?;
+    match time_grasp_lib::run().await {
+        Ok(_) => (),
+        Err(e) => println!("{:?}", e),
+    }
 
     Ok(())
 }
