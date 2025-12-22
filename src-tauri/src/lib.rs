@@ -24,7 +24,7 @@ pub async fn run() -> error::Result<()> {
     tauri::Builder::default()
         .setup(|app| {
             println!("creating store");
-            let store_manager = store::StoreManager::new(app.path().app_data_dir()?);
+            let store_manager = store::StoreManager::from_path(app.path().app_data_dir()?);
             println!("created store");
             app.manage(Arc::new(store_manager));
             Ok(())

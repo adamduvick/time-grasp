@@ -7,7 +7,7 @@
 use std::path::PathBuf;
 use std::{env, str::FromStr};
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use sqlx::SqlitePool;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::sqlite::SqliteJournalMode;
@@ -23,16 +23,30 @@ use crate::store::Result;
 /// minimal and designed to be stored in application state (e.g. Tauri
 /// managed state).
 pub struct StoreManager {
-    app_data_dir: Option<PathBuf>,
+    store_type: StoreType,
     pool: OnceCell<SqlitePool>,
+}
+
+pub enum StoreType {
+    AppData(PathBuf),
+    Memory,
+    Dev,
+    FromPool,
 }
 
 impl StoreManager {
     /// Create a new `StoreManager` by connecting to the database URL found
     /// in the `DATABASE_URL` environment variable.
-    pub fn new(app_data_dir: std::path::PathBuf) -> Self {
+    pub fn new(store_type: StoreType) -> Self {
         Self {
-            app_data_dir: Some(app_data_dir),
+            store_type,
+            pool: OnceCell::new(),
+        }
+    }
+
+    pub fn from_path(app_data_dir: PathBuf) -> Self {
+        Self {
+            store_type: StoreType::AppData(app_data_dir),
             pool: OnceCell::new(),
         }
     }
@@ -47,7 +61,7 @@ impl StoreManager {
     /// Construct a `StoreManager` from an existing `SqlitePool`.
     pub fn from_pool(pool: SqlitePool) -> Self {
         Self {
-            app_data_dir: None,
+            store_type: StoreType::FromPool,
             pool: pool.clone().into(),
         }
     }
@@ -57,31 +71,30 @@ impl StoreManager {
         let pool = self
             .pool
             .get_or_try_init(|| async {
-                // TODO, for dev, give option to init database according to environment
-                // variable.
-                //
-                // Path to your SQLite database file.
-                // let database_url = env::var("DATABASE_URL")?;
-
                 println!("Initializing database");
 
-                let opts = match &self.app_data_dir {
-                    Some(dir) => {
+                let opts = match &self.store_type {
+                    StoreType::AppData(dir) => {
                         std::fs::create_dir_all(dir.clone())?;
                         let path = dir.join("time_grasp.db");
                         let path = path.to_str().context("Invalid path")?;
                         println!("DB path: {}", path);
-                        SqliteConnectOptions::from_str(path)?
+                        Ok(SqliteConnectOptions::from_str(path)?)
                     }
-                    None => {
-                        // TODO: this code path will never be exercised
-                        // also, this API is not great currently. An in-memory instantiation
-                        // should be more explicit than just `app_data_dir = None`
+                    StoreType::Memory => {
                         let path = ":memory:";
                         println!("DB path: {}", path);
-                        SqliteConnectOptions::from_str(path)?
+                        Ok(SqliteConnectOptions::from_str(path)?)
                     }
-                };
+                    StoreType::Dev => {
+                        let path = env::var("DATABASE_URL")?;
+                        println!("DB path: {}", path);
+                        Ok(SqliteConnectOptions::from_str(&path)?)
+                    }
+                    StoreType::FromPool => Err(anyhow!(
+                        "Unreachable: StoreManager from Pool should already be initialized"
+                    )),
+                }?;
 
                 let opts = opts
                     .create_if_missing(true)

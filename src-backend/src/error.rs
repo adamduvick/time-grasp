@@ -44,6 +44,10 @@ pub enum Error {
     /// Any errors results
     #[error("Anyhow error: {0}")]
     Anyhow(#[from] anyhow::Error),
+
+    /// Custom
+    #[error("Custom error: {0}")]
+    Custom(&'static str),
 }
 
 impl serde::Serialize for Error {
