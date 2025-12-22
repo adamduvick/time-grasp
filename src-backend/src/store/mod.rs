@@ -10,7 +10,7 @@ pub mod manager;
 mod seed_for_dev;
 pub mod traits;
 
-pub use crate::error::Result;
+pub use crate::error::*;
 pub use manager::*;
 pub use traits::*;
 

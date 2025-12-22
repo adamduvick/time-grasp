@@ -7,14 +7,13 @@
 use std::path::PathBuf;
 use std::{env, str::FromStr};
 
-use anyhow::{Context, anyhow};
 use sqlx::SqlitePool;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::sqlite::SqliteJournalMode;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::sync::OnceCell;
 
-use crate::store::Result;
+use crate::store::{Error, Result};
 
 /// Lightweight wrapper owning the application's `SqlitePool`.
 ///
@@ -37,8 +36,8 @@ pub enum StoreType {
 impl StoreManager {
     pub fn new(store_type: StoreType) -> Result<Self> {
         match store_type {
-            StoreType::FromPool => Err(anyhow!(
-                "Cannot use `StoreType::FromPool` in `StoreManager::new`; use `StoreManager::from_pool`"
+            StoreType::FromPool => Err(Error::Custom(
+                "Use `StoreManager::from_pool` to create a manager of `StoreType::FromPool`",
             ))?,
             _ => Ok(Self {
                 store_type,
@@ -80,7 +79,7 @@ impl StoreManager {
                     StoreType::AppData(dir) => {
                         std::fs::create_dir_all(dir.clone())?;
                         let path = dir.join("time_grasp.db");
-                        let path = path.to_str().context("Invalid path")?;
+                        let path = path.to_str().ok_or(Error::Custom("Invalid path"))?;
                         println!("DB path: {}", path);
                         Ok(SqliteConnectOptions::from_str(path)?)
                     }
@@ -94,8 +93,8 @@ impl StoreManager {
                         println!("DB path: {}", path);
                         Ok(SqliteConnectOptions::from_str(&path)?)
                     }
-                    StoreType::FromPool => Err(anyhow!(
-                        "Unreachable: StoreManager from Pool should already be initialized"
+                    StoreType::FromPool => Err(Error::Custom(
+                        "Unreachable: StoreManager from Pool should already be initialized",
                     )),
                 }?;
 
