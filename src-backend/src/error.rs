@@ -26,6 +26,12 @@ pub enum Error {
     /// DATABASE_URL).
     #[error("Environment variable error: {0}")]
     Env(#[from] std::env::VarError),
+
+    /// Currently, the only way this will fail is do a `app_handle.try_state::<T>()`
+    /// where `T` is before that state is managed by tauri. This means you either never
+    /// called `.manage(data: T)` or you tried to get at the state before it's been called
+    #[error("Context error; failed to access state that is not managed by tauri")]
+    CtxFail,
 }
 
 impl serde::Serialize for Error {

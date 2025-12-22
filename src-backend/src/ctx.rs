@@ -18,6 +18,7 @@ use std::sync::Arc;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Wry};
 
+use crate::error::{Error, Result};
 use crate::store::StoreManager;
 use model::HubEvent;
 
@@ -32,17 +33,22 @@ impl Ctx {
     /// The `AppHandle` is used to retrieve shared state (for example
     /// an `Arc<StoreManager>`) which is stored inside the context for
     /// later use by handlers.
-    pub fn new(app_handle: AppHandle<Wry>) -> Self {
-        Ctx {
-            store_manager: (*app_handle.state::<Arc<StoreManager>>()).clone(),
+    pub fn new(app_handle: AppHandle<Wry>) -> Result<Self> {
+        let store_manager = app_handle
+            .try_state::<Arc<StoreManager>>()
+            .ok_or(Error::CtxFail)?
+            .inner()
+            .clone();
+        Ok(Ctx {
+            store_manager,
             app_handle,
-        }
+        })
     }
 
     /// Convenience constructor that allocates the context on the heap and
     /// returns an `Arc<Ctx>` ready to be stored or passed around.
-    pub fn from_app(app: AppHandle<Wry>) -> Arc<Ctx> {
-        Arc::new(Ctx::new(app))
+    pub fn from_app(app: AppHandle<Wry>) -> Result<Arc<Self>> {
+        Ok(Arc::new(Ctx::new(app)?))
     }
 
     /// Return a cloned `Arc<StoreManager>` so callers may access storage.
