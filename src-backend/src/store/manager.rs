@@ -35,12 +35,15 @@ pub enum StoreType {
 }
 
 impl StoreManager {
-    /// Create a new `StoreManager` by connecting to the database URL found
-    /// in the `DATABASE_URL` environment variable.
-    pub fn new(store_type: StoreType) -> Self {
-        Self {
-            store_type,
-            pool: OnceCell::new(),
+    pub fn new(store_type: StoreType) -> Result<Self> {
+        match store_type {
+            StoreType::FromPool => Err(anyhow!(
+                "Cannot use `StoreType::FromPool` in `StoreManager::new`; use `StoreManager::from_pool`"
+            ))?,
+            _ => Ok(Self {
+                store_type,
+                pool: OnceCell::new(),
+            }),
         }
     }
 
