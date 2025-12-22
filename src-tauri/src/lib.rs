@@ -16,17 +16,19 @@ use std::sync::Arc;
 use backend::error;
 use backend::ipc;
 use backend::store;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> error::Result<()> {
-    println!("loading store");
-    let store_manager = store::StoreManager::new().await?;
-    println!("loaded store");
-    let store_manager = Arc::new(store_manager);
-
     println!("building app");
     tauri::Builder::default()
-        .manage(store_manager)
+        .setup(|app| {
+            println!("creating store");
+            let store_manager = store::StoreManager::new(app.path().app_data_dir()?);
+            println!("created store");
+            app.manage(Arc::new(store_manager));
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             // Category Group

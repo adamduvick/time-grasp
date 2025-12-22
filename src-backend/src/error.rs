@@ -19,6 +19,10 @@ pub enum Error {
     Sqlx(#[from] sqlx::Error),
 
     /// SQLx/database related errors.
+    #[error("Tauri error: {0}")]
+    Tauri(#[from] tauri::Error),
+
+    /// SQLx/database related errors.
     #[error("Migration error: {0}")]
     Migration(#[from] sqlx::migrate::MigrateError),
 
@@ -32,6 +36,14 @@ pub enum Error {
     /// called `.manage(data: T)` or you tried to get at the state before it's been called
     #[error("Context error; failed to access state that is not managed by tauri")]
     CtxFail,
+
+    /// Any errors results
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    /// Any errors results
+    #[error("Anyhow error: {0}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 impl serde::Serialize for Error {

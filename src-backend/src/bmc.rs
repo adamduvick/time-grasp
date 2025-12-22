@@ -32,7 +32,7 @@ fn hub_event<D: Serialize + Clone>(
 
 /// Generic create helper used internally by the BMC wrappers.
 async fn create<C: Creatable<C>>(ctx: Arc<Ctx>, entity: &'static str, data: C) -> Result<Uuid> {
-    let pool = ctx.get_store_manager().pool();
+    let pool = ctx.get_store_manager().pool().await?;
     let id = C::create(&pool, data).await?;
     let event = hub_event(entity, "create", id);
     ctx.emit_hub_event(event);
@@ -41,7 +41,7 @@ async fn create<C: Creatable<C>>(ctx: Arc<Ctx>, entity: &'static str, data: C) -
 
 /// Generic read helper used internally by the BMC wrappers.
 async fn read<R: Readable<R>>(ctx: Arc<Ctx>, _entity: &'static str, id: Uuid) -> Result<R> {
-    let pool = ctx.get_store_manager().pool();
+    let pool = ctx.get_store_manager().pool().await?;
     let record = R::read(&pool, id).await?;
     // No event emitted for read-only operations
     Ok(record)
@@ -53,7 +53,7 @@ async fn list<R: Readable<R>>(
     _entity: &'static str,
     filter: R::Filter,
 ) -> Result<Vec<R>> {
-    let pool = ctx.get_store_manager().pool();
+    let pool = ctx.get_store_manager().pool().await?;
     let records = R::list(&pool, filter).await?;
     // No event emitted for read-only operations
     Ok(records)
@@ -61,7 +61,7 @@ async fn list<R: Readable<R>>(
 
 /// Generic update helper used internally by the BMC wrappers.
 async fn update<U: Updatable<U>>(ctx: Arc<Ctx>, entity: &'static str, data: U) -> Result<Uuid> {
-    let pool = ctx.get_store_manager().pool();
+    let pool = ctx.get_store_manager().pool().await?;
     let id = U::update(&pool, data).await?;
     let event = hub_event(entity, "update", id);
     ctx.emit_hub_event(event);
@@ -70,7 +70,7 @@ async fn update<U: Updatable<U>>(ctx: Arc<Ctx>, entity: &'static str, data: U) -
 
 /// Generic delete helper used internally by the BMC wrappers.
 async fn delete<D: Deletable<D>>(ctx: Arc<Ctx>, entity: &'static str, data: D) -> Result<Uuid> {
-    let pool = ctx.get_store_manager().pool();
+    let pool = ctx.get_store_manager().pool().await?;
     let id = D::delete(&pool, data).await?;
     let event = hub_event(entity, "delete", id);
     ctx.emit_hub_event(event);
