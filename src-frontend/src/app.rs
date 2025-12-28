@@ -6,6 +6,85 @@ use wasm_bindgen::prelude::*;
 
 use crate::ipc::*;
 
+use reactive_stores::Store;
+
+#[derive(Store, Debug, Clone)]
+pub struct Data {
+    #[store(key: String = |row| row.key.clone())]
+    rows: Vec<DatabaseEntry>,
+    index: i64,
+}
+
+#[derive(Store, Debug, Clone)]
+pub struct DatabaseEntry {
+    key: String,
+    value: i64,
+}
+
+#[component]
+pub fn StoreExample() -> impl IntoView {
+    let index = 3;
+    let data = Store::new(Data {
+        rows: (0..index)
+            .map(|i| DatabaseEntry {
+                key: format!("key-{}", i),
+                value: i,
+            })
+            .collect(),
+        index,
+    });
+
+    view! {
+        // when we click, update each row,
+        // doubling its value
+        <button on:click=move |_| {
+            // allows iterating over the entries in an iterable store field
+            use reactive_stores::StoreFieldIterator;
+
+            // calling rows() gives us access to the rows
+            for row in data.rows().iter_unkeyed() {
+                *row.value().write() *= 2;
+            }
+            // log the new value of the signal
+            leptos::logging::log!("{:?}", data.get());
+        }>
+            "Update Values"
+        </button>
+        // when we click, delete one row
+        <button on:click=move |_| {
+            let _ = data.rows().try_write().expect("rows signal exists").pop();
+            let index = data.index().read().clone();
+            data.index().set(index - 1);
+            // log the new value of the signal
+            leptos::logging::log!("{:?}", data.get());
+        }>
+            "Remove Row"
+        </button>
+        // when we click, delete one row
+        <button on:click=move |_| {
+            let index = data.index().read().clone();
+            let _ = data.rows().try_write_untracked().expect("rows signal exists").push(DatabaseEntry {
+                key: format!("key-{}", index),
+                value: index,
+            });
+            data.index().set(index + 1);
+            // log the new value of the signal
+            leptos::logging::log!("{:?}", data.get());
+        }>
+            "Add Row"
+        </button>
+        // iterate over the rows and display each value
+        <For
+            each=move || data.rows()
+            key=|row| row.read().key.clone()
+            children=|child| {
+                let value = child.value();
+                view! { <p>{move || value.get()}</p> }
+            }
+        />
+    }
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     let (name, set_name) = signal(String::new());
@@ -31,13 +110,7 @@ pub fn App() -> impl IntoView {
             };
             match create_group(group).await {
                 Ok(id) => match list_group(CategoryGroupFilter { id: None }).await {
-                    Ok(categories) => set_greet_msg.set(
-                        categories
-                            .into_iter()
-                            .map(|c| format!("{:?}", c))
-                            .collect::<Vec<_>>()
-                            .join("\n"),
-                    ),
+                    Ok(categories) => set_greet_msg.set(format!("{:#?}", categories)),
                     Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
                 },
                 Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
@@ -68,6 +141,7 @@ pub fn App() -> impl IntoView {
                 <button type="submit">"New Category"</button>
             </form>
             <p>{ move || greet_msg.get() }</p>
+            <StoreExample/>
         </main>
     }
 }
