@@ -81,22 +81,22 @@ impl StoreManager {
                         let path = dir.join("time_grasp.db");
                         let path = path.to_str().ok_or(Error::Custom("Invalid path"))?;
                         println!("DB path: {}", path);
-                        Ok(SqliteConnectOptions::from_str(path)?)
+                        SqliteConnectOptions::from_str(path)?
                     }
                     StoreType::Memory => {
                         let path = ":memory:";
                         println!("DB path: {}", path);
-                        Ok(SqliteConnectOptions::from_str(path)?)
+                        SqliteConnectOptions::from_str(path)?
                     }
                     StoreType::Dev => {
                         let path = env::var("DATABASE_URL")?;
                         println!("DB path: {}", path);
-                        Ok(SqliteConnectOptions::from_str(&path)?)
+                        SqliteConnectOptions::from_str(&path)?
                     }
                     StoreType::FromPool => Err(Error::Custom(
                         "Unreachable: StoreManager from Pool should already be initialized",
-                    )),
-                }?;
+                    ))?,
+                };
 
                 let opts = opts
                     .create_if_missing(true)

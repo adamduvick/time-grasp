@@ -1,4 +1,5 @@
 use chrono::DateTime;
+use chrono::DurationRound;
 use chrono::Months;
 use chrono::NaiveDateTime;
 use chrono::TimeDelta;
@@ -11,19 +12,26 @@ use model::*;
 
 // region:      --- insert helpers
 
+#[derive(Debug, Clone)]
 struct Tree<S: Into<String>> {
     items: Vec<GroupStruct<S>>,
 }
+
+#[derive(Debug, Clone)]
 struct GroupStruct<S: Into<String>> {
     name: S,
     note: Option<S>,
     categories: Vec<CategoryStruct<S>>,
 }
+
+#[derive(Debug, Clone)]
 struct CategoryStruct<S: Into<String>> {
     name: S,
     note: Option<S>,
     entries: Vec<EntryStruct<S>>,
 }
+
+#[derive(Debug, Clone)]
 struct EntryStruct<S: Into<String>> {
     name: S,
     note: Option<S>,
@@ -197,7 +205,11 @@ fn random_data<S: Into<String>>() -> Tree<String> {
 
     let (n_groups, n_categories, n_entries) = (5, 25, 1000);
     let mut durations = vec![15, 30, 60, 120, 240, 480];
-    let mut time_counter = Utc::now().checked_sub_months(Months::new(3)).unwrap();
+    let mut time_counter = Utc::now()
+        .duration_round(TimeDelta::try_days(1).unwrap())
+        .unwrap()
+        .checked_sub_months(Months::new(3))
+        .unwrap();
 
     for i in 0..n_groups {
         tree.items.push(GroupStruct {
@@ -245,10 +257,22 @@ pub(in crate::store) enum SeedType {
 pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool, seed_type: SeedType) -> Result<()> {
     match seed_type {
         SeedType::Representative => {
-            representative_example::<&'static str>()
-                .build_and_insert(pool)
-                .await
+            let tree = representative_example::<&'static str>();
+            let result = tree.clone().build_and_insert(pool).await;
+            if result.is_ok() {
+                println!("✅ Seeded representative example data");
+                println!("{:#?}", tree);
+            }
+            result
         }
-        SeedType::Random => random_data::<String>().build_and_insert(pool).await,
+        SeedType::Random => {
+            let tree = random_data::<String>();
+            let result = tree.clone().build_and_insert(pool).await;
+            if result.is_ok() {
+                println!("✅ Seeded random example data");
+                println!("{:#?}", tree);
+            }
+            result
+        }
     }
 }
