@@ -8,7 +8,10 @@
       "cwd": "../",
       "script": "trunk serve --port 1420 --config Trunk.toml"
     },
-    "beforeBuildCommand": "trunk build --release --config /Users/adamduvick/Code/time-grasp/apps/Trunk.toml",
+    "beforeBuildCommand": {
+      "cwd": "../",
+      "script": "trunk build --release --config Trunk.toml"
+    },
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../dist"
   },
