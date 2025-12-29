@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "build": {
+    "beforeDevCommand": "trunk serve --address 0.0.0.0 --port 1420",
+    "devUrl": "http://macbook.local:1420"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self' http://macbook.local:1420; img-src 'self' data: blob: http://macbook.local:1420; font-src 'self' data:; media-src 'self' blob:; style-src 'self' 'unsafe-inline' http://macbook.local:1420; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' http://macbook.local:1420; connect-src 'self' http://macbook.local:1420 ws://macbook.local:1420; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    }
+  }
+}
