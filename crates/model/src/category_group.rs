@@ -103,16 +103,10 @@ pub struct CategoryGroupForDelete {
 /// Currently minimal; supports filtering by id. Additional predicates can be
 /// added as needed for searches and list endpoints.
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct CategoryGroupFilter {
     /// Optional id to restrict queries to a single group.
     pub id: Option<Uuid>,
-}
-
-impl Default for CategoryGroupFilter {
-    fn default() -> Self {
-        Self { id: None }
-    }
 }
 
 impl CategoryGroupFilter {

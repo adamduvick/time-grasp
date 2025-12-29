@@ -16,6 +16,9 @@ readme = "README.md"
 repository = "https://github.com/adamduvick/time-grasp/"
 version = "0.1.0"
 
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
 [workspace.dependencies]
 # members
 backend = { path = "./crates/backend", default-features = false }

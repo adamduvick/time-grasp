@@ -53,7 +53,7 @@ pub fn StoreExample() -> impl IntoView {
         // when we click, delete one row
         <button on:click=move |_| {
             let _ = data.rows().try_write().expect("rows signal exists").pop();
-            let index = data.index().read().clone();
+            let index = *data.index().read();
             data.index().set(index - 1);
             // log the new value of the signal
             leptos::logging::log!("{:?}", data.get());
@@ -62,8 +62,8 @@ pub fn StoreExample() -> impl IntoView {
         </button>
         // when we click, delete one row
         <button on:click=move |_| {
-            let index = data.index().read().clone();
-            let _ = data.rows().try_write_untracked().expect("rows signal exists").push(DatabaseEntry {
+            let index = *data.index().read();
+            data.rows().try_write_untracked().expect("rows signal exists").push(DatabaseEntry {
                 key: format!("key-{}", index),
                 value: index,
             });

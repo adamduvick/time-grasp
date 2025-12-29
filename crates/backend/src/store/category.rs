@@ -23,7 +23,7 @@ impl Creatable<C_Category> for C_Category {
         .bind(entity.id)
         .bind(&entity.name)
         .bind(&entity.note)
-        .bind(&entity.group_id)
+        .bind(entity.group_id)
         .execute(pool)
         .await?;
 

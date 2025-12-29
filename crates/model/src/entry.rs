@@ -136,16 +136,10 @@ pub struct EntryForDelete {
 /// Currently only supports filtering by id but can be extended with
 /// additional predicates as needed.
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct EntryFilter {
     /// Optional id to restrict queries to a single entry.
     pub id: Option<Uuid>,
-}
-
-impl Default for EntryFilter {
-    fn default() -> Self {
-        Self { id: None }
-    }
 }
 
 impl EntryFilter {

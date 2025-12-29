@@ -86,8 +86,8 @@ fn dt(dt_str: &str) -> DateTime<Utc> {
 
 // region:      --- example data
 
-fn representative_example<S: Into<String>>() -> Tree<&'static str> {
-    let tree = Tree {
+fn representative_example() -> Tree<&'static str> {
+    Tree {
         items: vec![
             GroupStruct {
                 name: "😋 Wants",
@@ -188,19 +188,17 @@ fn representative_example<S: Into<String>>() -> Tree<&'static str> {
                 ],
             },
         ],
-    };
-
-    tree
+    }
 }
 
 use rand::prelude::IndexedMutRandom;
 
-fn random_item_mut<T>(v: &mut Vec<T>) -> &mut T {
+fn random_item_mut<T>(v: &mut [T]) -> &mut T {
     let mut rng = rand::rng();
     v.choose_mut(&mut rng).unwrap()
 }
 
-fn random_data<S: Into<String>>() -> Tree<String> {
+fn random_data() -> Tree<String> {
     let mut tree = Tree { items: vec![] };
 
     let (n_groups, n_categories, n_entries) = (5, 25, 1000);
@@ -229,12 +227,12 @@ fn random_data<S: Into<String>>() -> Tree<String> {
     for i in 0..n_entries {
         let group = random_item_mut(&mut tree.items);
         let category = random_item_mut(&mut group.categories);
-        let duration = random_item_mut(&mut durations).clone() * 60;
-        let start_time = time_counter.clone();
+        let duration = *random_item_mut(&mut durations) * 60;
+        let start_time = time_counter;
         let end_time = start_time
             .checked_add_signed(TimeDelta::new(duration, 0).unwrap())
             .unwrap();
-        time_counter = end_time.clone();
+        time_counter = end_time;
         category.entries.push(EntryStruct {
             name: format!("Entry {:04}", i + 1),
             note: None,
@@ -257,7 +255,7 @@ pub(in crate::store) enum SeedType {
 pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool, seed_type: SeedType) -> Result<()> {
     match seed_type {
         SeedType::Representative => {
-            let tree = representative_example::<&'static str>();
+            let tree = representative_example();
             let result = tree.clone().build_and_insert(pool).await;
             if result.is_ok() {
                 println!("✅ Seeded representative example data");
@@ -266,7 +264,7 @@ pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool, seed_type: SeedTyp
             result
         }
         SeedType::Random => {
-            let tree = random_data::<String>();
+            let tree = random_data();
             let result = tree.clone().build_and_insert(pool).await;
             if result.is_ok() {
                 println!("✅ Seeded random example data");

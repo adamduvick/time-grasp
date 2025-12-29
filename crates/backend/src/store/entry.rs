@@ -25,9 +25,9 @@ impl Creatable<C_Entry> for C_Entry {
         .bind(entity.id)
         .bind(&entity.name)
         .bind(&entity.note)
-        .bind(&entity.category_id)
-        .bind(&entity.start_time)
-        .bind(&entity.end_time)
+        .bind(entity.category_id)
+        .bind(entity.start_time)
+        .bind(entity.end_time)
         .execute(pool)
         .await?;
 
