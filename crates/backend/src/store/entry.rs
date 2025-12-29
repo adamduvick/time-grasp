@@ -39,7 +39,7 @@ impl Creatable<C_Entry> for C_Entry {
 impl Readable<R_Entry> for R_Entry {
     type Filter = EntryFilter;
 
-    const BASE_SELECT: &'static str = r#"
+    const BASE_SELECT: &'static str = r"
         SELECT 
             id,
             name, 
@@ -56,7 +56,7 @@ impl Readable<R_Entry> for R_Entry {
             deleted_by_device,
             tombstone_reason
         FROM entry
-    "#;
+    ";
 
     async fn read(pool: &SqlitePool, id: Uuid) -> Result<Self> {
         let mut qb = QueryBuilder::new(Self::BASE_SELECT);

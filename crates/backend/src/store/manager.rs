@@ -61,7 +61,7 @@ impl StoreManager {
     }
 
     /// Construct a `StoreManager` from an existing `SqlitePool`.
-    pub fn from_pool(pool: SqlitePool) -> Self {
+    pub fn from_pool(pool: &SqlitePool) -> Self {
         Self {
             store_type: StoreType::FromPool,
             pool: pool.clone().into(),
@@ -80,17 +80,17 @@ impl StoreManager {
                         std::fs::create_dir_all(dir.clone())?;
                         let path = dir.join("time_grasp.db");
                         let path = path.to_str().ok_or(Error::Custom("Invalid path"))?;
-                        println!("DB path: {}", path);
+                        println!("DB path: {path}");
                         SqliteConnectOptions::from_str(path)?
                     }
                     StoreType::Memory => {
                         let path = ":memory:";
-                        println!("DB path: {}", path);
+                        println!("DB path: {path}");
                         SqliteConnectOptions::from_str(path)?
                     }
                     StoreType::Dev => {
                         let path = env::var("DATABASE_URL")?;
-                        println!("DB path: {}", path);
+                        println!("DB path: {path}");
                         SqliteConnectOptions::from_str(&path)?
                     }
                     StoreType::FromPool => Err(Error::Custom(
@@ -114,11 +114,11 @@ impl StoreManager {
                 // The `sqlx::migrate!()` macro embeds migration metadata at compile time.
                 sqlx::migrate!("./migrations").run(&pool).await?;
                 let seed_type = crate::store::seed_for_dev::SeedType::Random;
-                println!("➡️ Seeding dev db with {:?}", seed_type);
+                println!("➡️ Seeding dev db with {seed_type:?}");
                 // TODO: gaurd this with a dev-only flag.
                 match crate::store::seed_for_dev::seed_for_dev(&pool, seed_type).await {
-                    Ok(_) => println!("✅ Completed seeding dev db with {:?}", seed_type),
-                    Err(e) => eprintln!("❌ Seeding skipped for the following reasons: {:?}", e),
+                    Ok(()) => println!("✅ Completed seeding dev db with {seed_type:?}"),
+                    Err(e) => eprintln!("❌ Seeding skipped for the following reasons: {e:?}"),
                 }
 
                 Ok::<_, crate::error::Error>(pool)

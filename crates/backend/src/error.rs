@@ -27,7 +27,7 @@ pub enum Error {
     Migration(#[from] sqlx::migrate::MigrateError),
 
     /// Environment variable resolution errors (for example missing
-    /// DATABASE_URL).
+    /// `DATABASE_URL`).
     #[error("Environment variable error: {0}")]
     Env(#[from] std::env::VarError),
 

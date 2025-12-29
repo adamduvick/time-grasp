@@ -7,6 +7,9 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 # internal
 model = { workspace = true, features = ["wasm"] }

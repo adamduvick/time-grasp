@@ -3,9 +3,9 @@
 
 #[tokio::main]
 async fn main() -> backend::error::Result<()> {
-    match time_grasp_lib::run().await {
-        Ok(_) => (),
-        Err(e) => println!("{:?}", e),
+    match time_grasp_lib::run() {
+        Ok(()) => (),
+        Err(e) => println!("{e:?}"),
     }
 
     Ok(())

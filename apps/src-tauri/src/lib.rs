@@ -19,7 +19,7 @@ use backend::store;
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub async fn run() -> error::Result<()> {
+pub fn run() -> error::Result<()> {
     println!("building app");
     tauri::Builder::default()
         .setup(|app| {
@@ -50,8 +50,7 @@ pub async fn run() -> error::Result<()> {
             ipc::update_entry,
             ipc::delete_entry,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .run(tauri::generate_context!())?;
     println!("built app");
 
     Ok(())

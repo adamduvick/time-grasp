@@ -35,7 +35,7 @@ impl Creatable<C_Category> for C_Category {
 impl Readable<R_Category> for R_Category {
     type Filter = CategoryFilter;
 
-    const BASE_SELECT: &'static str = r#"
+    const BASE_SELECT: &'static str = r"
         SELECT 
             id,
             name, 
@@ -49,7 +49,7 @@ impl Readable<R_Category> for R_Category {
             deleted_by_device,
             tombstone_reason
         FROM category
-    "#;
+    ";
 
     async fn read(pool: &SqlitePool, id: Uuid) -> Result<Self> {
         let mut qb = QueryBuilder::new(Self::BASE_SELECT);

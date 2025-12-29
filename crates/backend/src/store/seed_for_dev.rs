@@ -41,30 +41,30 @@ struct EntryStruct<S: Into<String>> {
 
 impl<S: Into<String>> Tree<S> {
     async fn build_and_insert(self, pool: &SqlitePool) -> Result<()> {
-        for group_fields in self.items.into_iter() {
+        for group_fields in self.items {
             let group = C_Group {
                 id: Uuid::new_v4(),
                 name: group_fields.name.into(),
-                note: group_fields.note.map(|note| note.into()),
+                note: group_fields.note.map(std::convert::Into::into),
             };
             let group_id = C_Group::create(pool, group).await?;
 
-            for category_fields in group_fields.categories.into_iter() {
+            for category_fields in group_fields.categories {
                 let category = C_Category {
                     id: Uuid::new_v4(),
                     name: category_fields.name.into(),
-                    note: category_fields.note.map(|note| note.into()),
+                    note: category_fields.note.map(std::convert::Into::into),
                     group_id,
                 };
                 let category_id = C_Category::create(pool, category).await?;
 
-                for entry_fields in category_fields.entries.into_iter() {
+                for entry_fields in category_fields.entries {
                     let entry = C_Entry {
                         id: Uuid::new_v4(),
                         name: entry_fields.name.into(),
-                        note: entry_fields.note.map(|note| note.into()),
+                        note: entry_fields.note.map(std::convert::Into::into),
                         start_time: entry_fields.start_time.into(),
-                        end_time: entry_fields.end_time.map(|end_time| end_time.into()),
+                        end_time: entry_fields.end_time.map(std::convert::Into::into),
                         category_id,
                     };
                     let _entry_id = C_Entry::create(pool, entry).await?;
@@ -222,7 +222,7 @@ fn random_data() -> Tree<String> {
             name: format!("Category {:04}", i + 1),
             note: None,
             entries: vec![],
-        })
+        });
     }
     for i in 0..n_entries {
         let group = random_item_mut(&mut tree.items);
@@ -238,7 +238,7 @@ fn random_data() -> Tree<String> {
             note: None,
             start_time,
             end_time: Some(end_time),
-        })
+        });
     }
 
     tree
@@ -259,7 +259,7 @@ pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool, seed_type: SeedTyp
             let result = tree.clone().build_and_insert(pool).await;
             if result.is_ok() {
                 println!("✅ Seeded representative example data");
-                println!("{:#?}", tree);
+                println!("{tree:#?}");
             }
             result
         }
@@ -268,7 +268,7 @@ pub(in crate::store) async fn seed_for_dev(pool: &SqlitePool, seed_type: SeedTyp
             let result = tree.clone().build_and_insert(pool).await;
             if result.is_ok() {
                 println!("✅ Seeded random example data");
-                println!("{:#?}", tree);
+                println!("{tree:#?}");
             }
             result
         }

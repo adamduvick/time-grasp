@@ -27,7 +27,7 @@ pub fn StoreExample() -> impl IntoView {
     let data = Store::new(Data {
         rows: (0..index)
             .map(|i| DatabaseEntry {
-                key: format!("key-{}", i),
+                key: format!("key-{i}"),
                 value: i,
             })
             .collect(),
@@ -64,7 +64,7 @@ pub fn StoreExample() -> impl IntoView {
         <button on:click=move |_| {
             let index = *data.index().read();
             data.rows().try_write_untracked().expect("rows signal exists").push(DatabaseEntry {
-                key: format!("key-{}", index),
+                key: format!("key-{index}"),
                 value: index,
             });
             data.index().set(index + 1);
@@ -110,10 +110,10 @@ pub fn App() -> impl IntoView {
             };
             match create_group(group).await {
                 Ok(id) => match list_group(CategoryGroupFilter { id: None }).await {
-                    Ok(categories) => set_greet_msg.set(format!("{:#?}", categories)),
-                    Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
+                    Ok(categories) => set_greet_msg.set(format!("{categories:#?}")),
+                    Err(e) => set_greet_msg.set(format!("Error {e:?}")),
                 },
-                Err(e) => set_greet_msg.set(format!("Error {:?}", e)),
+                Err(e) => set_greet_msg.set(format!("Error {e:?}")),
             }
         });
     };

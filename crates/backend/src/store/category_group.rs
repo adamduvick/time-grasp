@@ -32,7 +32,7 @@ impl Creatable<C_Group> for C_Group {
 impl Readable<R_Group> for R_Group {
     type Filter = CategoryGroupFilter;
 
-    const BASE_SELECT: &'static str = r#"
+    const BASE_SELECT: &'static str = r"
         SELECT 
             id,
             name, 
@@ -45,7 +45,7 @@ impl Readable<R_Group> for R_Group {
             deleted_by_device,
             tombstone_reason
         FROM category_group
-    "#;
+    ";
 
     async fn read(pool: &SqlitePool, id: Uuid) -> Result<Self> {
         let mut qb = QueryBuilder::new(Self::BASE_SELECT);

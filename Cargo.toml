@@ -19,6 +19,9 @@ version = "0.1.0"
 [workspace.lints.rust]
 unsafe_code = "forbid"
 
+[workspace.lints.clippy]
+# pedantic = "warn"
+
 [workspace.dependencies]
 # members
 backend = { path = "./crates/backend", default-features = false }
