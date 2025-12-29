@@ -1,3 +1,4 @@
+#![doc = include_str!("../../../index.md")]
 #![allow(unused)]
 #![allow(dead_code)]
 #![allow(unused_imports)]

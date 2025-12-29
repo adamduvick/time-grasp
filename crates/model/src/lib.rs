@@ -1,3 +1,4 @@
+#![doc = include_str!("../../../index.md")]
 //! Domain models and DTOs used across the crate.
 //!
 //! This module exposes the application domain types for categories, category

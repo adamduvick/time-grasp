@@ -1,10 +1,18 @@
 [package]
 name = "backend"
-version = "0.1.0"
-edition = "2024"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+readme.workspace = true
+repository.workspace = true
+version.workspace = true
 
 [dependencies]
+# internal
+model = { workspace = true, default-features = true }
 anyhow = { workspace = true }
+
+# 3rd party
 async-trait = { workspace = true }
 chrono = { workspace = true }
 rand = { workspace = true, features = ["thread_rng"] }
@@ -25,4 +33,3 @@ time = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v4"] }
-model = { workspace = true, default-features = true }

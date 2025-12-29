@@ -1,3 +1,4 @@
+#![doc = include_str!("../../../index.md")]
 //! Core library for the Time Grasp application.
 //!
 //! This crate exposes the core application layers used by the Tauri
