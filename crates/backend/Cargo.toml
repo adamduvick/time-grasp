@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.100"
-async-trait = "0.1.89"
-chrono = "0.4.42"
-rand = "0.9.2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-sqlx = { version = "0.8", features = [
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+rand = { workspace = true, features = ["thread_rng"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sqlx = { workspace = true, features = [
     "runtime-tokio",
     "macros",
     "sqlite",
@@ -18,12 +18,11 @@ sqlx = { version = "0.8", features = [
     "uuid",
     "chrono",
 ] }
-tauri = { version = "2", features = [] }
-tauri-plugin-opener = "2"
-thiserror = "2.0.17"
-time = "0.3.44"
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tracing = "0.1.41"
-uuid = { version = "1", features = ["serde", "v4"] }
-
+tauri = { workspace = true, default-features = true }
+tauri-plugin-opener = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["serde", "v4"] }
 model = { workspace = true, default-features = true }
