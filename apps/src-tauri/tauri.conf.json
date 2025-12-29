@@ -4,8 +4,11 @@
   "version": "0.1.0",
   "identifier": "com.time-grasp.app",
   "build": {
-    "beforeDevCommand": "trunk serve --port 1420",
-    "beforeBuildCommand": "trunk build --release",
+    "beforeDevCommand": {
+      "cwd": "../",
+      "script": "trunk serve --port 1420 --config Trunk.toml"
+    },
+    "beforeBuildCommand": "trunk build --release --config /Users/adamduvick/Code/time-grasp/apps/Trunk.toml",
     "devUrl": "http://127.0.0.1:1420",
     "frontendDist": "../dist"
   },
