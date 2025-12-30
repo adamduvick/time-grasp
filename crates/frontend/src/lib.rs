@@ -5,8 +5,8 @@
 #![allow(unused_variables)]
 
 pub mod app;
-mod error;
-mod ipc;
+pub mod error;
+pub mod ipc;
 
 use leptos::prelude::*;
 use wasm_bindgen::prelude::*;

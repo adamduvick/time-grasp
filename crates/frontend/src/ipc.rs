@@ -40,8 +40,9 @@ where
 /// If these assumptions hold true, this macro helps to easily create a mirroring function
 #[macro_export]
 macro_rules! ipc_call {
-    ($name:ident ( $( $arg:ident : $ty:ty ),* $(,)? ) -> $ret:ty ) => {
-        /// Mirror to a correponding `tauri::command` of the same name in the backend
+    ($(#[$meta:meta])* $name:ident ( $( $arg:ident : $ty:ty ),* $(,)? ) -> $ret:ty ) => {
+        $(#[$meta])*
+        #[doc = concat!("Type-safe mirror to `backend::ipc::", stringify!($name), "`")]
         pub async fn $name( $( $arg : $ty ),* ) -> $ret {
             const CMD: &'static str = stringify!($name);
 
