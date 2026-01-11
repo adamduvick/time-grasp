@@ -113,7 +113,7 @@ impl StoreManager {
                 //
                 // The `sqlx::migrate!()` macro embeds migration metadata at compile time.
                 sqlx::migrate!("./migrations").run(&pool).await?;
-                let seed_type = crate::store::seed_for_dev::SeedType::Random;
+                let seed_type = crate::store::seed_for_dev::SeedType::Representative;
                 println!("➡️ Seeding dev db with {seed_type:?}");
                 // TODO: gaurd this with a dev-only flag.
                 match crate::store::seed_for_dev::seed_for_dev(&pool, seed_type).await {

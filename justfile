@@ -13,7 +13,7 @@ ios_reload_proj:
 ios_cleanup:
     rm -rf ~/Library/Developer/Xcode/DerivedData/time-grasp*
 
-[working-directory('src-backend')]
+[working-directory('crates/backend')]
 reload_database:
     rm -rf .sqlx "$DATABASE_PATH"
     cargo sqlx db create && cargo sqlx migrate run && cargo sqlx prepare
@@ -23,3 +23,12 @@ test_backend_model:
 
 test:
     cargo test --workspace --all-targets
+
+[working-directory('apps')]
+trunk_clean:
+    trunk clean
+
+[working-directory('apps')]
+clean:
+    cargo clean
+    trunk clean

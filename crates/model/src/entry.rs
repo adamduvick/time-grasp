@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{DurationMillis, EpochMillis};
+use crate::{DurationMillis, EpochMillis, FieldUpdate};
 
 /// A recorded time entry in the system.
 ///
@@ -106,7 +106,7 @@ pub struct EntryForUpdate {
 
     /// Optional new note. `Some(Some(text))` sets a note,
     /// `Some(None)` clears it, and `None` means "leave unchanged".
-    pub note: Option<Option<String>>,
+    pub note: FieldUpdate<String>,
 
     /// Optional new category id to move the entry to.
     pub category_id: Option<Uuid>,
@@ -140,6 +140,39 @@ pub struct EntryForDelete {
 pub struct EntryFilter {
     /// Optional id to restrict queries to a single entry.
     pub id: Option<Uuid>,
+
+    /// bool to return deleted rows
+    pub deleted: bool,
+
+    /// Optional sort field.
+    pub sort_by: Option<EntrySortField>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EntrySortField {
+    /// Sort by start time.
+    StartTime(SortOrder),
+    /// Sort by end time.
+    EndTime(SortOrder),
+    /// Sort by duration.
+    Duration(SortOrder),
+    /// Sort by name.
+    Name(SortOrder),
+}
+
+impl std::default::Default for EntrySortField {
+    fn default() -> Self {
+        EntrySortField::Name(SortOrder::Ascending)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum SortOrder {
+    /// Ascending order.
+    #[default]
+    Ascending,
+    /// Descending order.
+    Descending,
 }
 
 impl EntryFilter {
@@ -151,6 +184,12 @@ impl EntryFilter {
     /// Specify the id to filter by.
     pub fn id(mut self, id: Option<Uuid>) -> Self {
         self.id = id;
+        self
+    }
+
+    /// Specify the sort field.
+    pub fn sort_by(mut self, sort_by: Option<EntrySortField>) -> Self {
+        self.sort_by = sort_by;
         self
     }
 }

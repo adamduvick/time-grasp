@@ -80,3 +80,31 @@ impl Sub for EpochMillis {
         DurationMillis(self.0 - rhs.0)
     }
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum FieldUpdate<T> {
+    Unchanged,
+    Set(T),
+    Clear,
+}
+
+impl<T> Default for FieldUpdate<T> {
+    fn default() -> Self {
+        FieldUpdate::Unchanged
+    }
+}
+
+impl<T> FieldUpdate<T> {
+    pub fn is_unchanged(&self) -> bool {
+        matches!(self, FieldUpdate::Unchanged)
+    }
+
+    pub fn as_option(&self) -> Option<Option<&T>> {
+        match self {
+            FieldUpdate::Unchanged => None,
+            FieldUpdate::Set(val) => Some(Some(val)),
+            FieldUpdate::Clear => Some(None),
+        }
+    }
+}

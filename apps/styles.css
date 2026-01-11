@@ -2,12 +2,70 @@ html,
 body {
   margin: 0;
   padding: 0;
-  /* overflow: hidden; */
+  /* overflow: auto; */
   /* Prevents any scroll */
-  height: 100%;
-  width: 100%;
-  touch-action: none;
+  /* height: 100%;
+  width: 100%; */
+  /* touch-action: none; */
   /* Stops touch panning and pinch-zoom */
+}
+
+
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-root {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.grid-body-container {
+  flex: 1 1 auto;
+  height: 1px;
+  overflow: auto;
+  width: 100%;
+}
+
+.grid-header {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  flex: 0 0 auto;
+  text-transform: uppercase;
+}
+
+.grid-body {
+  border-collapse: collapse;
+  display: table;
+  font-weight: 400;
+  table-layout: fixed;
+  user-select: none;
+  width: 100%;
+}
+
+.grid-row {
+  display: table-row;
+  height: 2.25rem;
+  /* flex-direction: row; */
+  /* justify-content: flex-start; */
+}
+
+.grid-row>* {
+  margin-block: 0;
+}
+
+.grid-row>*+* {
+  margin-block-start: var(--space, 1.5rem);
+}
+
+.grid-cell {
+  display: table-cell;
+  /* flex-direction: row; */
+  /* justify-content: flex-start; */
 }
 
 #app {
@@ -16,7 +74,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .scrollable {

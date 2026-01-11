@@ -15,15 +15,20 @@ workspace = true
 model = { workspace = true, features = ["wasm"] }
 
 # 3rd party
+chrono = { workspace = true }
 console_error_panic_hook = { workspace = true }
 js-sys = { workspace = true }
 leptos = { workspace = true, features = ["csr"] }
+leptos-struct-table = { workspace = true, features = ["uuid", "chrono"] }
+reactive_graph = { workspace = true }
 reactive_stores = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde-wasm-bindgen = { workspace = true }
 thiserror = { workspace = true }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true }
+serde_json.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]

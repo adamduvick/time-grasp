@@ -80,10 +80,48 @@ impl Filterable for EntryFilter {
     fn apply(&self, qb: &mut QueryBuilder<Sqlite>) {
         qb.push(" WHERE 1=1");
 
-        let Self { id } = self.clone();
+        let Self {
+            id,
+            deleted,
+            sort_by,
+        } = self.clone();
 
         if let Some(id) = id {
             qb.push(" AND id = ").push_bind(id);
+        }
+
+        match deleted {
+            true => qb.push(" AND deleted_at IS NOT NULL "),
+            false => qb.push(" AND deleted_at IS NULL "),
+        };
+
+        if let Some(sort_by) = sort_by {
+            match sort_by {
+                EntrySortField::StartTime(order) => {
+                    qb.push(" ORDER BY start_time ");
+                    if order == SortOrder::Descending {
+                        qb.push(" DESC");
+                    }
+                }
+                EntrySortField::EndTime(order) => {
+                    qb.push(" ORDER BY end_time ");
+                    if order == SortOrder::Descending {
+                        qb.push(" DESC");
+                    }
+                }
+                EntrySortField::Duration(order) => {
+                    qb.push(" ORDER BY duration ");
+                    if order == SortOrder::Descending {
+                        qb.push(" DESC");
+                    }
+                }
+                EntrySortField::Name(order) => {
+                    qb.push(" ORDER BY name ");
+                    if order == SortOrder::Descending {
+                        qb.push(" DESC");
+                    }
+                }
+            }
         }
     }
 }
@@ -91,6 +129,7 @@ impl Filterable for EntryFilter {
 #[async_trait]
 impl Updatable<U_Entry> for U_Entry {
     async fn update(pool: &SqlitePool, entity: Self) -> Result<Uuid> {
+        println!("Updatable<U_Entry>::update - {:#?}", entity);
         let Self {
             id,
             name,
@@ -101,18 +140,21 @@ impl Updatable<U_Entry> for U_Entry {
         } = entity;
 
         let name_flag = name.is_some();
-        let note_flag = note.is_some();
+        let note_flag = note.as_option().is_some();
         let category_flag = category_id.is_some();
         let start_flag = start_time.is_some();
         let end_flag = end_time.is_some();
 
+        println!("Updatable<U_Entry>::update - entry dto received");
         // No fields requested to change → skip hitting the DB
         if !name_flag && !note_flag && !category_flag && !start_flag && !end_flag {
+            println!("Updatable<U_Entry>::update - {:?} - {}", note, note_flag);
+            println!("Updatable<U_Entry>::update - no changes");
             return Ok(id);
         }
 
         let name_value = name;
-        let note_value = note.flatten();
+        let note_value = note.as_option().flatten();
         let category_value = category_id;
         let start_value = start_time;
         let end_value = end_time.flatten();
@@ -196,7 +238,7 @@ pub mod tests {
         pool: &SqlitePool,
         id: Uuid,
         name: Option<String>,
-        note: Option<Option<String>>,
+        note: FieldUpdate<String>,
         category_id: Option<Uuid>,
         start_time: Option<EpochMillis>,
         end_time: Option<Option<EpochMillis>>,
@@ -284,7 +326,7 @@ pub mod tests {
             &pool,
             entity.id,
             Some(name.clone()),
-            Some(Some(note.clone())),
+            FieldUpdate::Set(note.clone()),
             None,
             None,
             None,
@@ -309,7 +351,7 @@ pub mod tests {
             &pool,
             entity.id,
             None,
-            None,
+            FieldUpdate::Unchanged,
             None,
             Some(start_time),
             Some(Some(end_time)),
@@ -330,7 +372,7 @@ pub mod tests {
             &pool,
             entity.id,
             None,
-            None,
+            FieldUpdate::Unchanged,
             None,
             Some(start_time),
             Some(Some(end_time)),
@@ -347,9 +389,17 @@ pub mod tests {
     async fn test_empty_update_does_nothing(pool: SqlitePool) {
         let (_group, _category, entity) =
             create_chain(&pool).await.expect("Failed to create chain");
-        let updated = update_and_read(&pool, entity.id, None, None, None, None, None)
-            .await
-            .expect("Failed to update and read entry group");
+        let updated = update_and_read(
+            &pool,
+            entity.id,
+            None,
+            FieldUpdate::Unchanged,
+            None,
+            None,
+            None,
+        )
+        .await
+        .expect("Failed to update and read entry group");
         assert_eq!(updated, entity);
     }
 

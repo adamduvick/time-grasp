@@ -6,13 +6,13 @@
   "build": {
     "beforeDevCommand": {
       "cwd": "../",
-      "script": "trunk serve --port 1420 --config Trunk.toml"
+      "script": "trunk serve --config Trunk.toml & wait-on tcp -i 127.0.0.1 -p 1420"
     },
     "beforeBuildCommand": {
       "cwd": "../",
       "script": "trunk build --release --config Trunk.toml"
     },
-    "devUrl": "http://127.0.0.1:1420",
+    "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
   "app": {

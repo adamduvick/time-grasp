@@ -23,6 +23,13 @@ pub fn run() -> error::Result<()> {
     println!("building app");
     tauri::Builder::default()
         .setup(|app| {
+            // let win = app.get_webview_window("main").unwrap();
+            // #[cfg(debug_assertions)]
+            // {
+            //     // Helps a lot for "why is it still old"
+            //     win.open_devtools();
+            //     // Some platforms expose webview APIs differently; devtools + hard reload is the win.
+            // }
             println!("creating store");
             let store_manager = store::StoreManager::from_path(app.path().app_data_dir()?);
             println!("created store");

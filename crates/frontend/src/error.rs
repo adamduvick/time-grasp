@@ -14,7 +14,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// Wraps common error kinds used by the model and store layers. New variants
 /// may be added as the application grows (for example for validation or
 /// network errors).
-#[derive(Debug, thiserror::Error, Serialize, Deserialize)]
+#[derive(Debug, thiserror::Error, Serialize, Deserialize, Clone)]
 #[serde(tag = "kind", content = "message")]
 pub enum Error {
     /// Error received while invoking a tauri command.

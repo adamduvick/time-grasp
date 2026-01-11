@@ -212,7 +212,7 @@ fn random_data() -> Tree<String> {
     for i in 0..n_groups {
         tree.items.push(GroupStruct {
             name: format!("Group {:04}", i + 1),
-            note: None,
+            note: Some(format!("Group {:04} note", i + 1)),
             categories: vec![],
         });
     }
@@ -220,7 +220,7 @@ fn random_data() -> Tree<String> {
         let group = random_item_mut(&mut tree.items);
         group.categories.push(CategoryStruct {
             name: format!("Category {:04}", i + 1),
-            note: None,
+            note: Some(format!("Category {:04} note", i + 1)),
             entries: vec![],
         });
     }
@@ -235,7 +235,7 @@ fn random_data() -> Tree<String> {
         time_counter = end_time;
         category.entries.push(EntryStruct {
             name: format!("Entry {:04}", i + 1),
-            note: None,
+            note: Some(format!("Entry {:04} note", i + 1)),
             start_time,
             end_time: Some(end_time),
         });

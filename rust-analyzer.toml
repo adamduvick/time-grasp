@@ -1,0 +1,9 @@
+[rustfmt]
+overrideCommand = [
+    "leptosfmt",
+    "--stdin",
+    "--rustfmt",
+    "--config-file",
+    "leptosfmt.toml",
+]
+# (optional) other config...
