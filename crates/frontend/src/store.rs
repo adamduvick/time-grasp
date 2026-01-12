@@ -169,7 +169,6 @@ impl VecEntryStore {
         let update_dto = entry.create_update_dto(&original_entry.get());
         original_entry.patch(entry);
         spawn_local(async move {
-            leptos::logging::log!("update dto: {:#?}", update_dto);
             let result = ipc::update_entry(update_dto).await;
             leptos::logging::log!("entry update result: {:?}", result);
         });
@@ -179,7 +178,6 @@ impl VecEntryStore {
         store.entries().write().retain(|e| e.id != entry.id);
         let dto = entry.into();
         spawn_local(async move {
-            leptos::logging::log!("delete dto: {:#?}", dto);
             let result = ipc::delete_entry(dto).await;
             leptos::logging::log!("entry update result: {:?}", result);
         });
@@ -274,7 +272,11 @@ fn EntryView(store: Store<VecEntryStore>, #[prop(into)] entry: Field<Entry>) -> 
             <input type="submit"/>
         </form>
         <input type="button" name="delete" value="Delete" on:click=on_delete/>
-        <p>{move || entry.name()} " - " {move || format!("{:?}", entry.start_time().get())} " - " {move || entry.note().get().unwrap_or("(no note)".to_string())}</p>
+        <p>
+            {move || entry.name()}
+            " - " {move || format!("{:?}", entry.start_time().get())}
+            " - " {move || entry.note().get().unwrap_or("(no note)".to_string())}
+        </p>
         <hr/>
     }
 }

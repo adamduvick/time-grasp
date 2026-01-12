@@ -129,7 +129,6 @@ impl Filterable for EntryFilter {
 #[async_trait]
 impl Updatable<U_Entry> for U_Entry {
     async fn update(pool: &SqlitePool, entity: Self) -> Result<Uuid> {
-        println!("Updatable<U_Entry>::update - {:#?}", entity);
         let Self {
             id,
             name,
@@ -145,11 +144,8 @@ impl Updatable<U_Entry> for U_Entry {
         let start_flag = start_time.is_some();
         let end_flag = end_time.is_some();
 
-        println!("Updatable<U_Entry>::update - entry dto received");
         // No fields requested to change → skip hitting the DB
         if !name_flag && !note_flag && !category_flag && !start_flag && !end_flag {
-            println!("Updatable<U_Entry>::update - {:?} - {}", note, note_flag);
-            println!("Updatable<U_Entry>::update - no changes");
             return Ok(id);
         }
 

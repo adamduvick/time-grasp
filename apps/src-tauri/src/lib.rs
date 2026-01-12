@@ -20,7 +20,7 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> error::Result<()> {
-    println!("building app");
+    log::debug!("run invoked");
     tauri::Builder::default()
         .setup(|app| {
             // let win = app.get_webview_window("main").unwrap();
@@ -30,9 +30,7 @@ pub fn run() -> error::Result<()> {
             //     win.open_devtools();
             //     // Some platforms expose webview APIs differently; devtools + hard reload is the win.
             // }
-            println!("creating store");
             let store_manager = store::StoreManager::from_path(app.path().app_data_dir()?);
-            println!("created store");
             app.manage(Arc::new(store_manager));
             Ok(())
         })
@@ -58,7 +56,6 @@ pub fn run() -> error::Result<()> {
             ipc::delete_entry,
         ])
         .run(tauri::generate_context!())?;
-    println!("built app");
 
     Ok(())
 }

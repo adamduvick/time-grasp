@@ -36,3 +36,5 @@ time = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v4"] }
+log = { workspace = true }
+env_logger = { workspace = true }

@@ -46,12 +46,13 @@ macro_rules! ipc_call {
         pub async fn $name( $( $arg : $ty ),* ) -> $ret {
             const CMD: &'static str = stringify!($name);
 
-            #[derive(::serde::Serialize)]
+            #[derive(::serde::Serialize, Debug)]
             struct Args {
                 $( $arg : $ty ),*
             }
 
             let wrapped_args = Args { $( $arg ),* };
+            ::leptos::logging::debug_log!("frontend::ipc::{} invoked with args:\n{wrapped_args:#?}", stringify!($name));
             invoke_typed(CMD, wrapped_args).await
         }
     };
