@@ -7,6 +7,7 @@
 pub mod app;
 pub mod entry_table;
 pub mod error;
+pub mod fmc;
 pub mod grid;
 pub mod ipc;
 pub mod model;

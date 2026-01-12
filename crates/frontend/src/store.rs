@@ -9,9 +9,12 @@ use reactive_stores::StoreFieldIterator;
 use reactive_stores::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::{HtmlInputElement, MouseEvent, SubmitEvent};
+
+// region:   --- prototype code
 
 #[derive(Store)]
 pub struct Entries {
@@ -160,7 +163,7 @@ impl VecEntryStore {
         store.entries().write().push(entry.clone());
         spawn_local(async move {
             let result = ipc::create_entry(entry.into()).await;
-            leptos::logging::log!("entry add result: {:?}", result);
+            leptos::logging::log!("ipc::create_entry result: {:?}", result);
         });
     }
 
@@ -170,7 +173,7 @@ impl VecEntryStore {
         original_entry.patch(entry);
         spawn_local(async move {
             let result = ipc::update_entry(update_dto).await;
-            leptos::logging::log!("entry update result: {:?}", result);
+            leptos::logging::log!("ipc::update_entry result: {:?}", result);
         });
     }
 
@@ -179,7 +182,7 @@ impl VecEntryStore {
         let dto = entry.into();
         spawn_local(async move {
             let result = ipc::delete_entry(dto).await;
-            leptos::logging::log!("entry update result: {:?}", result);
+            leptos::logging::log!("ipc::update_entry result: {:?}", result);
         });
     }
 }
@@ -280,3 +283,5 @@ fn EntryView(store: Store<VecEntryStore>, #[prop(into)] entry: Field<Entry>) -> 
         <hr/>
     }
 }
+
+// endregion:   --- prototype code

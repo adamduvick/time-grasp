@@ -1,8 +1,12 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use model as dto;
 use model::{DurationMillis, Uuid};
-use reactive_stores::{Field, Patch, PatchField, Store};
+use reactive_stores::{Field, Patch, PatchField, Store, StorePath};
 use serde::{Deserialize, Serialize};
+
+static TOMBSTONE_REASON: &str = "Deleted from frontend";
+
+// region:      --- entry
 
 #[derive(Clone, Debug, Store, PartialEq)]
 pub struct Entry {
@@ -13,20 +17,6 @@ pub struct Entry {
     pub start_time: DateTime<Utc>,
     pub end_time: Option<DateTime<Utc>>,
     pub duration: Option<DurationMillis>,
-}
-
-impl PatchField for Entry {
-    fn patch_field(
-        &mut self,
-        new: Self,
-        path: &reactive_stores::StorePath,
-        notify: &mut dyn FnMut(&reactive_stores::StorePath),
-    ) {
-        if new != *self {
-            *self = new;
-            notify(path);
-        }
-    }
 }
 
 impl Entry {
@@ -47,7 +37,7 @@ impl Entry {
 }
 
 impl Entry {
-    pub fn create_update_dto(&self, prev: &Entry) -> dto::U_Entry {
+    pub fn create_update_dto(&self, prev: &Self) -> dto::U_Entry {
         dto::U_Entry {
             id: self.id,
             name: if self.name != prev.name {
@@ -82,8 +72,6 @@ impl Entry {
     }
 }
 
-// implement conversions from model::Entry to fontend Entry
-//
 impl Into<Entry> for dto::R_Entry {
     fn into(self) -> Entry {
         Entry {
@@ -115,7 +103,164 @@ impl Into<dto::D_Entry> for Entry {
     fn into(self) -> dto::D_Entry {
         dto::D_Entry {
             id: self.id,
-            tombstone_reason: "Deleted from frontend".to_string(),
+            tombstone_reason: TOMBSTONE_REASON.into(),
         }
     }
 }
+
+// endregion:   --- entry
+
+// region:      --- category
+
+#[derive(Clone, Debug, Store, PartialEq)]
+pub struct Category {
+    pub id: Uuid,
+    pub name: String,
+    pub note: Option<String>,
+    pub group_id: Uuid,
+}
+
+impl Category {
+    pub fn create_update_dto(&self, prev: &Self) -> dto::U_Category {
+        dto::U_Category {
+            id: self.id,
+            name: if self.name != prev.name {
+                Some(self.name.clone())
+            } else {
+                None
+            },
+            note: if self.note != prev.note {
+                todo!()
+            } else {
+                todo!()
+            },
+            group_id: if self.group_id != prev.group_id {
+                Some(self.group_id)
+            } else {
+                None
+            },
+        }
+    }
+}
+
+impl Into<Category> for dto::R_Category {
+    fn into(self) -> Category {
+        Category {
+            id: self.id,
+            name: self.name,
+            note: self.note,
+            group_id: self.group_id,
+        }
+    }
+}
+
+impl Into<dto::C_Category> for Category {
+    fn into(self) -> dto::C_Category {
+        dto::C_Category {
+            id: self.id,
+            name: self.name,
+            note: self.note,
+            group_id: self.group_id,
+        }
+    }
+}
+
+impl Into<dto::D_Category> for Category {
+    fn into(self) -> dto::D_Category {
+        dto::D_Category {
+            id: self.id,
+            tombstone_reason: TOMBSTONE_REASON.into(),
+        }
+    }
+}
+
+// endregion:   --- category
+
+// region:      --- group
+
+#[derive(Clone, Debug, Store, PartialEq)]
+pub struct Group {
+    pub id: Uuid,
+    pub name: String,
+    pub note: Option<String>,
+}
+
+impl Group {
+    pub fn create_update_dto(&self, prev: &Self) -> dto::U_Group {
+        dto::U_Group {
+            id: self.id,
+            name: if self.name != prev.name {
+                Some(self.name.clone())
+            } else {
+                None
+            },
+            note: if self.note != prev.note {
+                todo!()
+            } else {
+                todo!()
+            },
+        }
+    }
+}
+
+impl Into<Group> for dto::R_Group {
+    fn into(self) -> Group {
+        Group {
+            id: self.id,
+            name: self.name,
+            note: self.note,
+        }
+    }
+}
+
+impl Into<dto::C_Group> for Group {
+    fn into(self) -> dto::C_Group {
+        dto::C_Group {
+            id: self.id,
+            name: self.name,
+            note: self.note,
+        }
+    }
+}
+
+impl Into<dto::D_Group> for Group {
+    fn into(self) -> dto::D_Group {
+        dto::D_Group {
+            id: self.id,
+            tombstone_reason: TOMBSTONE_REASON.into(),
+        }
+    }
+}
+
+// endregion:   --- group
+
+// region:      --- PatchField impls
+
+impl PatchField for Entry {
+    fn patch_field(&mut self, new: Self, path: &StorePath, notify: &mut dyn FnMut(&StorePath)) {
+        if new != *self {
+            *self = new;
+            notify(path);
+        }
+    }
+}
+
+impl PatchField for Category {
+    fn patch_field(&mut self, new: Self, path: &StorePath, notify: &mut dyn FnMut(&StorePath)) {
+        if new != *self {
+            *self = new;
+            notify(path);
+        }
+    }
+}
+
+impl PatchField for Group {
+    fn patch_field(&mut self, new: Self, path: &StorePath, notify: &mut dyn FnMut(&StorePath)) {
+        if new != *self {
+            *self = new;
+            notify(path);
+        }
+    }
+}
+
+// endregion:   --- PatchField impls
