@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crate::ipc;
-use crate::model::{Entry, Uuid};
+use crate::model::{Entry, Updatable, Uuid};
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use model::{self as dto, D_Entry};
@@ -79,7 +79,9 @@ impl EntryFmc {
             && let Some(mut prev) = self.entries.get_mut(*index).cloned()
         {
             prev = data.clone();
-            let update_dto = data.create_update_dto(&prev);
+            // TODO: new_update_dto now takes the new entry instead of the previous one
+            // new pattern is old.new_update_dto(new);
+            let update_dto = data.new_update_dto(&prev);
             ipc::update_entry(update_dto).await?;
         }
 
@@ -87,7 +89,9 @@ impl EntryFmc {
             && let Some(mut prev) = self.store.items().write().get_mut(*index).cloned()
         {
             prev = data.clone();
-            let update_dto = data.create_update_dto(&prev);
+            // TODO: new_update_dto now takes the new entry instead of the previous one
+            // new pattern is old.new_update_dto(new);
+            let update_dto = data.new_update_dto(&prev);
             ipc::update_entry(update_dto).await?;
         }
 
@@ -169,7 +173,9 @@ impl VecEntryStore {
 
     pub fn update(store: &Store<Self>, entry: Entry) {
         let original_entry = AtKeyed::new(store.entries(), entry.id);
-        let update_dto = entry.create_update_dto(&original_entry.get());
+        // TODO: new_update_dto now takes the new entry instead of the previous one
+        // new pattern is old.new_update_dto(new);
+        let update_dto = entry.new_update_dto(&original_entry.get());
         original_entry.patch(entry);
         spawn_local(async move {
             let result = ipc::update_entry(update_dto).await;

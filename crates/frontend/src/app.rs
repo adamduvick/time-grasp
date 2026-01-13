@@ -7,7 +7,6 @@ use wasm_bindgen::prelude::*;
 use crate::entry_table::EntryTable;
 use crate::grid::EntriesGridDemo;
 use crate::ipc::*;
-use crate::store::EntryStoreTest;
 
 use reactive_stores::Store;
 
@@ -94,7 +93,8 @@ pub fn App() -> impl IntoView {
         <main class="container">
             // <StoreExample />
             // <EntriesGridDemo />
-            <EntryStoreTest />
+            // <crate::store::EntryStoreTest />
+            <crate::fmc::fmc_example::EntryStoreTest />
         </main>
     }
 }

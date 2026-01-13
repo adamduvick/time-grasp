@@ -19,6 +19,11 @@ pub struct Entry {
     pub duration: Option<DurationMillis>,
 }
 
+pub enum End {
+    At(DateTime<Utc>),
+    After(DurationMillis),
+}
+
 impl Entry {
     pub fn new(name: String) -> Entry {
         let id = Uuid::new_v4();
@@ -36,35 +41,35 @@ impl Entry {
     }
 }
 
-impl Entry {
-    pub fn create_update_dto(&self, prev: &Self) -> dto::U_Entry {
+impl Updatable<dto::U_Entry> for Entry {
+    fn new_update_dto(&self, new: &Self) -> dto::U_Entry {
         dto::U_Entry {
             id: self.id,
-            name: if self.name != prev.name {
-                Some(self.name.clone())
+            name: if self.name != new.name {
+                Some(new.name.clone())
             } else {
                 None
             },
-            note: if self.note != prev.note {
-                match &self.note {
+            note: if self.note != new.note {
+                match &new.note {
                     Some(v) => model::FieldUpdate::Set(v.to_string()),
                     None => model::FieldUpdate::Clear,
                 }
             } else {
                 model::FieldUpdate::Unchanged
             },
-            category_id: if self.category_id != prev.category_id {
-                Some(self.category_id)
+            category_id: if self.category_id != new.category_id {
+                Some(new.category_id)
             } else {
                 None
             },
-            start_time: if self.start_time != prev.start_time {
-                Some(self.start_time.into())
+            start_time: if self.start_time != new.start_time {
+                Some(new.start_time.into())
             } else {
                 None
             },
-            end_time: if self.end_time != prev.end_time {
-                Some(self.end_time.map(|dt| dt.into()))
+            end_time: if self.end_time != new.end_time {
+                Some(new.end_time.map(|dt| dt.into()))
             } else {
                 None
             },
@@ -120,22 +125,22 @@ pub struct Category {
     pub group_id: Uuid,
 }
 
-impl Category {
-    pub fn create_update_dto(&self, prev: &Self) -> dto::U_Category {
+impl Updatable<dto::U_Category> for Category {
+    fn new_update_dto(&self, new: &Self) -> dto::U_Category {
         dto::U_Category {
             id: self.id,
-            name: if self.name != prev.name {
-                Some(self.name.clone())
+            name: if self.name != new.name {
+                Some(new.name.clone())
             } else {
                 None
             },
-            note: if self.note != prev.note {
+            note: if self.note != new.note {
                 todo!()
             } else {
                 todo!()
             },
-            group_id: if self.group_id != prev.group_id {
-                Some(self.group_id)
+            group_id: if self.group_id != new.group_id {
+                Some(new.group_id)
             } else {
                 None
             },
@@ -185,16 +190,16 @@ pub struct Group {
     pub note: Option<String>,
 }
 
-impl Group {
-    pub fn create_update_dto(&self, prev: &Self) -> dto::U_Group {
+impl Updatable<dto::U_Group> for Group {
+    fn new_update_dto(&self, new: &Self) -> dto::U_Group {
         dto::U_Group {
             id: self.id,
-            name: if self.name != prev.name {
-                Some(self.name.clone())
+            name: if self.name != new.name {
+                Some(new.name.clone())
             } else {
                 None
             },
-            note: if self.note != prev.note {
+            note: if self.note != new.note {
                 todo!()
             } else {
                 todo!()
@@ -264,3 +269,11 @@ impl PatchField for Group {
 }
 
 // endregion:   --- PatchField impls
+
+// region:     --- helpers
+
+pub trait Updatable<T> {
+    fn new_update_dto(&self, new: &Self) -> T;
+}
+
+// endregion:  --- helpers
