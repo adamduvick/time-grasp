@@ -67,7 +67,7 @@ impl Keyed<Uuid> for Group {
 
 #[derive(Clone, Debug)]
 pub struct Fmc {
-    offset: UtcOffset,
+    offset: ArcRwSignal<UtcOffset>,
     entries: ArcStore<KeyedVec<Uuid, Entry>>,
     categories: ArcStore<KeyedVec<Uuid, Category>>,
     groups: ArcStore<KeyedVec<Uuid, Group>>,
@@ -91,7 +91,7 @@ impl Fmc {
         let groups = ArcStore::new(groups.into());
 
         let mut fmc = Self {
-            offset: UtcOffset::UTC,
+            offset: ArcRwSignal::new(UtcOffset::UTC),
             entries,
             categories,
             groups,
@@ -102,81 +102,17 @@ impl Fmc {
         Ok(Arc::new(fmc))
     }
 
-    pub fn set_offset(&mut self, offset: UtcOffset) {
-        leptos::logging::log!("Here I am!");
-
-        if self.offset == offset {
-            return;
-        }
-
-        self.offset = offset;
-
-        let store = self.entries.clone().inner();
-        let keys: Vec<_> = store.read().iter().map(|e| e.key()).collect();
-
-        leptos::logging::log!("{}", keys.len());
-
-        // for key in keys.iter() {
-        //     let field: ArcField<Entry> = AtKeyed::new(store.clone(), *key).into();
-        //     match field.try_get() {
-        //         Some(mut entry) => {
-        //             leptos::logging::log!("offset is set!");
-        //             // entry.with_offset(offset);
-        //             entry.time_frame.assume_offset(offset);
-        //         }
-        //         None => leptos::logging::log!("offset is not set"),
-        //     }
-        //     // match A
-        //     // .map(|mut e| e.with_offset(offset));
-        // }
-
-        // for key in keys.iter() {
-        //     let field = AtKeyed::new(store.clone(), *key);
-        //     // if let Some(prev) = field.try_read() {
-        //     // if let Some(prev) = field.try_write() {
-        //     if let Some(mut prev) = field.try_get() {
-        //         // let new = prev.with_offset(offset);
-        //         // leptos::logging::log!("old: {:?}\nnew: {:?}", prev, new);
-        //         leptos::logging::log!("updating entry");
-        //         prev.with_offset(offset);
-        //     } else {
-        //         leptos::logging::log!("no entry to update");
-        //     }
-        //     let triggers = field.triggers_for_current_path();
-
-        //     // let result = field.try_update(|entry| {
-        //     //     leptos::logging::log!("updating entry");
-        //     //     entry.with_offset(offset);
-        //     //     offset
-        //     // });
-        //     // leptos::logging::log!("result of try_update: {result:?}");
-        // }
-
-        let store = self.entries.clone();
-
-        for entry in store.inner().into_iter() {
-            entry.update_untracked(|e| e.with_offset(offset));
-        }
-
-        leptos::logging::log!("{}", keys.len());
-
-        // for entry in self.entries.inner().iter {
-        //     entry.time_frame().offset().set(offset);
-        //     leptos::logging::log!("Entry found: {}", entry.name().get())
-        // }
+    pub fn get_offset(&self) -> ArcRwSignal<UtcOffset> {
+        self.offset.clone()
     }
 
-    // pub fn entries(&self) -> Store<KeyedVec<Uuid, Entry>> {
-    //     self.entries
-    // }
-
-    // pub fn categories(&self) -> Store<KeyedVec<Uuid, Category>> {
-    //     self.categories
-    // }
-
-    // pub fn groups(&self) -> Store<KeyedVec<Uuid, Group>> {
-    //     self.groups
-    // }
+    pub fn set_offset(&mut self, offset: UtcOffset) {
+        self.offset.update(|o| {
+            if *o != offset {
+                *o = offset;
+            }
+        });
+    }
 }
 
 // endregion:  --- FMC - Frontend Model Controller
@@ -368,7 +304,7 @@ pub mod fmc_example {
 
     use leptos::prelude::*;
     use reactive_stores::{ArcField, Field, Store};
-    use time::macros::format_description;
+    use time::{UtcOffset, macros::format_description};
     use web_sys::{HtmlInputElement, MouseEvent, SubmitEvent};
 
     use crate::{
@@ -389,10 +325,24 @@ pub mod fmc_example {
                 let fmc_clone = Arc::clone(&fmc);
                 let new_entry =
                     move |_| fmc_clone.create(Entry::new("new @ current time".to_string()));
+
+                let fmc_clone = Arc::clone(&fmc);
+                let offset = fmc_clone.get_offset();
+                let toggle_local = move |_| {
+                    offset.update(|val| {
+                        if *val == UtcOffset::UTC {
+                            *val = get_timezone_offset();
+                        } else {
+                            *val = UtcOffset::UTC;
+                        }
+                    })
+                };
+
                 let fmc_clone = Arc::clone(&fmc);
 
                 view! {
                     <button on:click=new_entry>"new entry"</button>
+                    <button on:click=toggle_local>"toggle UTC time"</button>
                     <div>
                         <p>"Current offset: " {crate::model::support::get_timezone_offset().to_string()}</p>
                     </div>
@@ -483,11 +433,15 @@ pub mod fmc_example {
             </form>
             <input type="button" name="delete" value="Delete" on:click=on_delete/>
             // <p>{move || entry.name()}</p>
-            // <p>{move || entry.note().get().unwrap_or("(no note)".to_string())}</p>
+            <p>{
+                let note = entry.note().clone();
+                move || note.get().unwrap_or("(no note)".to_string())
+            }</p>
             // <p>{move || format!("{:#?}", entry.get())}</p>
             <p>{
                 let time_frame = entry1.clone().time_frame();
-                move || format!("{:?}", time_frame.get().get_start_time())
+                let offset = fmc.get_offset();
+                move || format!("{:?}", time_frame.get().with_offset(offset.get()).get_start_time())
             }</p>
             <p>{
                 let time_frame = entry2.clone().time_frame();
