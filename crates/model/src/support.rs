@@ -9,6 +9,7 @@ use std::ops::{Add, Sub};
 
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
+use time::{PrimitiveDateTime, UtcDateTime};
 
 /// Epoch milliseconds since UNIX epoch.
 ///
@@ -45,6 +46,33 @@ impl From<DateTime<Utc>> for EpochMillis {
 impl From<EpochMillis> for DateTime<Utc> {
     fn from(e: EpochMillis) -> Self {
         e.as_datetime()
+    }
+}
+
+impl From<UtcDateTime> for EpochMillis {
+    fn from(dt: UtcDateTime) -> Self {
+        Self((dt.unix_timestamp_nanos() / 1_000_000) as i64)
+    }
+}
+
+impl TryFrom<EpochMillis> for UtcDateTime {
+    type Error = time::error::ComponentRange;
+    fn try_from(e: EpochMillis) -> Result<Self, Self::Error> {
+        Self::from_unix_timestamp_nanos(e.0 as i128 * 1_000_000)
+    }
+}
+
+impl From<PrimitiveDateTime> for EpochMillis {
+    fn from(dt: PrimitiveDateTime) -> Self {
+        Self((dt.assume_utc().unix_timestamp_nanos() / 1_000_000) as i64)
+    }
+}
+
+impl TryFrom<EpochMillis> for PrimitiveDateTime {
+    type Error = time::error::ComponentRange;
+    fn try_from(e: EpochMillis) -> Result<Self, Self::Error> {
+        let dt = UtcDateTime::from_unix_timestamp_nanos(e.0 as i128 * 1_000_000)?;
+        Ok(Self::new(dt.date(), dt.time()))
     }
 }
 

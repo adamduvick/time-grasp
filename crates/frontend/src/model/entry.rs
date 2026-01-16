@@ -1,8 +1,14 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+// use chrono::{DateTime, NaiveDateTime, Utc};
+use leptos::prelude::*;
 use model as dto;
 use model::{DurationMillis, Uuid};
 use reactive_stores::{Field, Patch, PatchField, Store, StorePath};
 use serde::{Deserialize, Serialize};
+use std::ops::{Add, Sub};
+use time::{Duration, OffsetDateTime, PrimitiveDateTime, UtcDateTime, UtcOffset};
+
+use crate::model::support::get_timezone_offset;
+use crate::model::timeframe::TimeFrame;
 
 static TOMBSTONE_REASON: &str = "Deleted from frontend";
 
@@ -14,30 +20,27 @@ pub struct Entry {
     pub name: String,
     pub note: Option<String>,
     pub category_id: Uuid,
-    pub start_time: DateTime<Utc>,
-    pub end_time: Option<DateTime<Utc>>,
-    pub duration: Option<DurationMillis>,
-}
-
-pub enum End {
-    At(DateTime<Utc>),
-    After(DurationMillis),
+    pub time_frame: TimeFrame,
 }
 
 impl Entry {
     pub fn new(name: String) -> Entry {
         let id = Uuid::new_v4();
-        let category_id = Uuid::parse_str("e0294da8-bfca-476a-a943-5a28f5771928").unwrap();
-        let start_time = Utc::now();
+        let category_id = Uuid::parse_str("67607575-3ec7-49c0-a352-78a9358ede39").unwrap();
+        let time_frame = TimeFrame::with_utc_start_and_end(time::UtcDateTime::now().into(), None)
+            .expect("converting back to UTC type should never fail");
         Entry {
             id,
             name,
             note: None,
             category_id,
-            start_time,
-            end_time: None,
-            duration: None,
+            time_frame,
         }
+    }
+
+    pub fn with_offset(&mut self, offset: UtcOffset) {
+        leptos::logging::log!("Entry::with_offset {offset:?}");
+        self.time_frame.assume_offset(offset);
     }
 }
 
@@ -63,13 +66,13 @@ impl Updatable<dto::U_Entry> for Entry {
             } else {
                 None
             },
-            start_time: if self.start_time != new.start_time {
-                Some(new.start_time.into())
+            start_time: if self.time_frame != new.time_frame {
+                Some(new.time_frame.get_utc_start_time().into())
             } else {
                 None
             },
-            end_time: if self.end_time != new.end_time {
-                Some(new.end_time.map(|dt| dt.into()))
+            end_time: if self.time_frame != new.time_frame {
+                Some(new.time_frame.get_utc_end_time().map(|dt| dt.into()))
             } else {
                 None
             },
@@ -77,37 +80,37 @@ impl Updatable<dto::U_Entry> for Entry {
     }
 }
 
-impl Into<Entry> for dto::R_Entry {
-    fn into(self) -> Entry {
-        Entry {
-            id: self.id,
-            name: self.name,
-            note: self.note,
-            category_id: self.category_id,
-            start_time: self.start_time.into(),
-            end_time: self.end_time.map(|dt| dt.into()),
-            duration: self.duration,
-        }
+impl TryFrom<dto::R_Entry> for Entry {
+    type Error = crate::error::Error;
+
+    fn try_from(value: dto::R_Entry) -> Result<Self, Self::Error> {
+        Ok(Entry {
+            id: value.id,
+            name: value.name,
+            note: value.note,
+            category_id: value.category_id,
+            time_frame: TimeFrame::with_utc_start_and_end(value.start_time, value.end_time)?,
+        })
     }
 }
 
-impl Into<dto::C_Entry> for Entry {
-    fn into(self) -> dto::C_Entry {
+impl From<Entry> for dto::C_Entry {
+    fn from(value: Entry) -> Self {
         dto::C_Entry {
-            id: self.id,
-            name: self.name,
-            note: self.note,
-            category_id: self.category_id,
-            start_time: self.start_time.into(),
-            end_time: self.end_time.map(|dt| dt.into()),
+            id: value.id,
+            name: value.name,
+            note: value.note,
+            category_id: value.category_id,
+            start_time: value.time_frame.get_utc_start_time().into(),
+            end_time: value.time_frame.get_utc_end_time().map(|dt| dt.into()),
         }
     }
 }
 
-impl Into<dto::D_Entry> for Entry {
-    fn into(self) -> dto::D_Entry {
+impl From<Entry> for dto::D_Entry {
+    fn from(value: Entry) -> Self {
         dto::D_Entry {
-            id: self.id,
+            id: value.id,
             tombstone_reason: TOMBSTONE_REASON.into(),
         }
     }
@@ -243,9 +246,13 @@ impl Into<dto::D_Group> for Group {
 
 impl PatchField for Entry {
     fn patch_field(&mut self, new: Self, path: &StorePath, notify: &mut dyn FnMut(&StorePath)) {
+        leptos::logging::log!("Entry::patch_field called: {:?}", self);
         if new != *self {
+            leptos::logging::log!("Entry::patch_field change detected");
             *self = new;
             notify(path);
+        } else {
+            leptos::logging::log!("Entry::patch_field no change");
         }
     }
 }

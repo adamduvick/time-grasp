@@ -22,6 +22,7 @@ sqlx = { workspace = true, optional = true, features = [
     "uuid",
     "chrono",
 ] }
+time = { workspace = true }
 uuid = { workspace = true, optional = true, features = ["serde", "v4"] }
 
 [features]

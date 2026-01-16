@@ -23,12 +23,19 @@ leptos-struct-table = { workspace = true, features = ["uuid", "chrono"] }
 reactive_graph = { workspace = true }
 reactive_stores = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 serde-wasm-bindgen = { workspace = true }
 thiserror = { workspace = true }
+time = { workspace = true, features = [
+    "macros",
+    "std",
+    "formatting",
+    "wasm-bindgen",
+    "serde",
+] }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
 web-sys = { workspace = true }
-serde_json.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]

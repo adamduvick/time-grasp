@@ -1428,6 +1428,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_json",
  "thiserror 2.0.17",
+ "time",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2875,6 +2876,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "time",
  "uuid",
 ]
 
@@ -5490,6 +5492,7 @@ checksum = "91e7d9e3bb61134e77bde20dd4825b97c010155709965fedf0f49bb138e52a9d"
 dependencies = [
  "deranged",
  "itoa",
+ "js-sys",
  "num-conv",
  "powerfmt",
  "serde",

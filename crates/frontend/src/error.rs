@@ -24,6 +24,10 @@ pub enum Error {
     /// Error received while serializing or deserializing a value.
     #[error("Serde error: {0}")]
     Serde(String),
+
+    /// Error received while serializing or deserializing a value.
+    #[error("Serde error: {0}")]
+    Time(String),
 }
 
 impl From<JsValue> for Error {
@@ -35,5 +39,11 @@ impl From<JsValue> for Error {
 impl From<serde_wasm_bindgen::Error> for Error {
     fn from(e: serde_wasm_bindgen::Error) -> Self {
         Error::Serde(e.to_string())
+    }
+}
+
+impl From<time::error::ComponentRange> for Error {
+    fn from(e: time::error::ComponentRange) -> Self {
+        Error::Time(format!("{e}").to_string())
     }
 }

@@ -4,8 +4,6 @@ use model::*;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-use crate::entry_table::EntryTable;
-use crate::grid::EntriesGridDemo;
 use crate::ipc::*;
 
 use reactive_stores::Store;
@@ -92,7 +90,6 @@ pub fn App() -> impl IntoView {
     view! {
         <main class="container">
             // <StoreExample />
-            // <EntriesGridDemo />
             // <crate::store::EntryStoreTest />
             <crate::fmc::fmc_example::EntryStoreTest />
         </main>
