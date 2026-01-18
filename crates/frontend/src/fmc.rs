@@ -91,13 +91,11 @@ impl Fmc {
         let groups = ArcStore::new(groups.into());
 
         let mut fmc = Self {
-            offset: ArcRwSignal::new(UtcOffset::UTC),
+            offset: ArcRwSignal::new(get_timezone_offset()),
             entries,
             categories,
             groups,
         };
-
-        fmc.set_offset(get_timezone_offset());
 
         Ok(Arc::new(fmc))
     }
@@ -106,12 +104,37 @@ impl Fmc {
         self.offset.clone()
     }
 
-    pub fn set_offset(&mut self, offset: UtcOffset) {
+    pub fn set_offset(&self, offset: UtcOffset) {
         self.offset.update(|o| {
             if *o != offset {
                 *o = offset;
             }
         });
+    }
+
+    #[deprecated]
+    pub fn get_category(&self, id: Uuid) -> ArcField<Category> {
+        AtKeyed::new(self.categories.clone().inner(), id).into()
+    }
+
+    pub fn find_category(&self, name: String) -> Option<ArcField<Category>> {
+        let result = self
+            .categories
+            .clone()
+            .inner()
+            .into_iter()
+            .find(|c| c.clone().name().get_untracked() == name);
+        result.map(|c| c.into())
+    }
+
+    pub fn find_group(&self, name: String) -> Option<ArcField<Group>> {
+        let result = self
+            .groups
+            .clone()
+            .inner()
+            .into_iter()
+            .find(|g| g.clone().name().get_untracked() == name);
+        result.map(|g| g.into())
     }
 }
 
@@ -122,6 +145,8 @@ impl Fmc {
 trait Crud<T> {
     /// Add item to the store and persist the creation to disk
     fn create(&self, item: T);
+    /// Get item by its id
+    fn get(&self, id: Uuid) -> ArcField<T>;
     /// Update the previous version of item in the store and persist the changes to disk
     ///
     /// Note: The key determines which existing item will be updated
@@ -149,11 +174,12 @@ impl Crud<Entry> for Fmc {
         }
     }
 
+    fn get(&self, id: Uuid) -> ArcField<Entry> {
+        AtKeyed::new(self.entries.clone().inner(), id).into()
+    }
+
     fn update(&self, item: Entry) {
-        // Get the store
-        let store = self.entries.clone().inner();
-        // Get a reference the keyed location in the store
-        let field = AtKeyed::new(store, item.id);
+        let field: ArcField<Entry> = self.get(item.id);
         // Check that the store hasn't been dropped
         if let Some(prev) = field.try_get() {
             // Create a patch dto to send to backend
@@ -204,11 +230,12 @@ impl Crud<Category> for Fmc {
         }
     }
 
+    fn get(&self, id: Uuid) -> ArcField<Category> {
+        AtKeyed::new(self.categories.clone().inner(), id).into()
+    }
+
     fn update(&self, item: Category) {
-        // Get the store
-        let store = self.categories.clone().inner();
-        // Get a reference the keyed location in the store
-        let field = AtKeyed::new(store, item.id);
+        let field: ArcField<Category> = self.get(item.id);
         // Check that the store hasn't been dropped
         if let Some(prev) = field.try_get() {
             // Create a patch dto to send to backend
@@ -259,11 +286,12 @@ impl Crud<Group> for Fmc {
         }
     }
 
+    fn get(&self, id: Uuid) -> ArcField<Group> {
+        AtKeyed::new(self.groups.clone().inner(), id).into()
+    }
+
     fn update(&self, item: Group) {
-        // Get the store
-        let store = self.groups.clone().inner();
-        // Get a reference the keyed location in the store
-        let field = AtKeyed::new(store, item.id);
+        let field: ArcField<Group> = self.get(item.id);
         // Check that the store hasn't been dropped
         if let Some(prev) = field.try_get() {
             // Create a patch dto to send to backend
@@ -302,15 +330,212 @@ impl Crud<Group> for Fmc {
 pub mod fmc_example {
     use std::sync::Arc;
 
-    use leptos::prelude::*;
+    use leptos::{html, prelude::*};
+    use model::category;
     use reactive_stores::{ArcField, Field, Store};
-    use time::{UtcOffset, macros::format_description};
+    use time::{UtcOffset, format_description, macros::format_description};
     use web_sys::{HtmlInputElement, MouseEvent, SubmitEvent};
 
     use crate::{
         fmc::{Crud, Fmc, KeyedVecStoreFields},
-        model::{Entry, EntryStoreFields, support::get_timezone_offset},
+        model::{
+            Category, CategoryStoreFields, Entry, EntryStoreFields, support::get_timezone_offset,
+        },
     };
+
+    #[component]
+    pub fn EntryStoreTestNew() -> impl IntoView {
+        let async_data = LocalResource::new(async move || Fmc::init().await);
+        let async_result = move || match async_data.get() {
+            None => view! {}.into_any(),
+            Some(Err(e)) => view! { <ErrorView error=e /> }.into_any(),
+            Some(Ok(fmc)) => {
+                provide_context(Arc::clone(&fmc));
+                view! {
+                    <For
+                        each=move || fmc.entries.clone().inner()
+                        key=|row| row.clone().id().get()
+                        let:entry
+                    >
+                        <EntryEditView entry=entry />
+                    </For>
+                }
+                .into_any()
+            }
+        };
+
+        view! {
+            // Catches panics *and* Resource errors thrown via `?`
+            <ErrorBoundary
+                fallback=|errs| view! {
+                    <div class="error">
+                        <h3>"Something went wrong"</h3>
+                        <pre>{move || format!("{:#?}", errs.get())}</pre>
+                    </div>
+                }
+            >
+            <Suspense fallback=|| view! { <p>"Loading…"</p> }>
+                {async_result}
+            </Suspense>
+            </ErrorBoundary>
+        }
+    }
+
+    #[component]
+    fn EntryEditView(#[prop(into)] entry: ArcField<Entry>) -> impl IntoView {
+        let fmc = use_context::<Arc<Fmc>>().expect("expected Fmc to be provided");
+        let category: ArcField<Category> = fmc.get(entry.clone().category_id().get_untracked());
+
+        let date_format =
+            format_description::parse("[year]-[month]-[day]").expect("validated parser");
+        let time_format = format_description::parse("[hour]:[minute]").expect("validated parser");
+
+        let name = RwSignal::new(entry.clone().name().get_untracked());
+        let note = RwSignal::new(entry.clone().note().get_untracked().unwrap_or_default());
+        let category_name = RwSignal::new(category.clone().name().get_untracked());
+        let start_datetime = entry
+            .clone()
+            .time_frame()
+            .get_untracked()
+            .with_offset(get_timezone_offset())
+            .get_start_time();
+        let start_date = RwSignal::new(start_datetime.date().format(&date_format).unwrap());
+        let start_time = RwSignal::new(start_datetime.time().format(&time_format).unwrap());
+
+        let on_submit = {
+            let entry = entry.clone();
+            let fmc = Arc::clone(&fmc);
+            move |ev: SubmitEvent| {
+                ev.prevent_default();
+                let mut entry = entry.get_untracked().clone();
+                entry.name = name.get();
+                entry.note = Some(note.get());
+                match fmc.find_category(category_name.get()) {
+                    Some(category) => entry.category_id = category.id().get_untracked(),
+                    None => leptos::logging::log!("category does not exist"),
+                }
+                leptos::logging::log!("start_time: {:?}", start_time.get_untracked());
+                leptos::logging::log!("start_date: {:?}", start_date.get_untracked());
+                leptos::logging::log!("Saved Entry");
+                fmc.update(entry);
+                // entry.time_frame
+            }
+        };
+
+        view! {
+            <form on:submit=on_submit>
+                <label>
+                    "Name: "
+                    <input type="text" bind:value=name />
+                </label>
+                <label>
+                    "Note: "
+                    <input type="text" bind:value=note />
+                </label>
+                <CategoryDropDown category_name=category_name/>
+                <label>
+                    "Start Date: "
+                    <input type="date" bind:value=start_date />
+                </label>
+                <label>
+                    "Start Time: "
+                    <input type="time" bind:value=start_time />
+                </label>
+                <input type="submit" value="Save" />
+            </form>
+            <p>{move || format!("{:#?}", entry.get())}</p>
+        }
+    }
+
+    #[component]
+    fn ValidatedInput<V>(
+        #[prop(into)] input_type: String,
+        input_signal: RwSignal<String>,
+        validator: V,
+        #[prop(into)] validation_error_message: String,
+    ) -> impl IntoView
+    where
+        V: Fn(&String) -> bool + 'static,
+    {
+        let input_ref = NodeRef::<html::Input>::new();
+
+        let handle_input = move |ev| {
+            let value_str = event_target_value(&ev);
+            input_signal.set(value_str.clone());
+
+            if let Some(input) = input_ref.get() {
+                // Now validate the parsed value
+                if validator(&value_str) {
+                    input.set_custom_validity("");
+                } else {
+                    input.set_custom_validity(&validation_error_message);
+                }
+            }
+        };
+
+        view! {
+            <input
+                node_ref=input_ref
+                type=input_type
+                required
+                on:input=handle_input
+                prop:value=move || input_signal.get().to_string()
+            />
+        }
+    }
+
+    #[component]
+    fn ValidatedInputParsed<V, P, T>(
+        #[prop(into)] input_type: String,
+        input_signal: RwSignal<String>,
+        output_signal: RwSignal<Option<T>>,
+        validator: V,
+        #[prop(into)] validation_error_message: String,
+        parser: P,
+        #[prop(into)] parse_error_message: String,
+    ) -> impl IntoView
+    where
+        V: Fn(&String) -> bool + 'static,
+        P: Fn(&String) -> Option<T> + 'static,
+        T: Clone + Send + Sync + 'static,
+    {
+        let input_ref = NodeRef::<html::Input>::new();
+
+        let handle_input = move |ev| {
+            let value_str = event_target_value(&ev);
+            input_signal.set(value_str.clone());
+
+            if let Some(input) = input_ref.get() {
+                // Try to parse the string into T
+                match parser(&value_str) {
+                    Some(parsed_value) => {
+                        output_signal.set(Some(parsed_value.clone()));
+
+                        // Now validate the parsed value
+                        if validator(&value_str) {
+                            input.set_custom_validity("");
+                        } else {
+                            input.set_custom_validity(&validation_error_message);
+                        }
+                    }
+                    None => {
+                        // If parsing fails, mark as invalid
+                        input.set_custom_validity(&parse_error_message);
+                    }
+                }
+            }
+        };
+
+        view! {
+            <input
+                node_ref=input_ref
+                type=input_type
+                required
+                on:input=handle_input
+                prop:value=move || input_signal.get().to_string()
+            />
+        }
+    }
 
     #[component]
     pub fn EntryStoreTest() -> impl IntoView {
@@ -346,6 +571,7 @@ pub mod fmc_example {
                     <div>
                         <p>"Current offset: " {crate::model::support::get_timezone_offset().to_string()}</p>
                     </div>
+                    // <CategoryDropDown />
                     <For
                         each=move || fmc_clone.entries.clone().inner()
                         key=|row| row.clone().id().get()
@@ -426,36 +652,73 @@ pub mod fmc_example {
         view! {
             <form on:submit=on_submit>
                 <label>
-                    "Change the note"
+                    "Change the note: "
                     <input type="text" node_ref=input_ref/>
                 </label>
                 <input type="submit"/>
             </form>
             <input type="button" name="delete" value="Delete" on:click=on_delete/>
-            // <p>{move || entry.name()}</p>
+            <p>{
+                let name = entry.clone().name();
+                move || name.get()
+            }</p>
+            <p>{
+                let category_id = entry.clone().category_id();
+                let clone_fmc = Arc::clone(&fmc);
+                // move || clone_fmc.get_category(category_id.get()).name().get()
+                move || Crud::<Category>::get(&*clone_fmc, category_id.get()).name().get()
+            }</p>
             <p>{
                 let note = entry.note().clone();
                 move || note.get().unwrap_or("(no note)".to_string())
             }</p>
-            // <p>{move || format!("{:#?}", entry.get())}</p>
             <p>{
                 let time_frame = entry1.clone().time_frame();
                 let offset = fmc.get_offset();
-                move || format!("{:?}", time_frame.get().with_offset(offset.get()).get_start_time())
+                move || {
+                    let time_frame = time_frame.get().with_offset(offset.get());
+                    format!("{:?} - {:?} - {:?}",
+                        time_frame.get_start_time(),
+                        time_frame.get_end_time(),
+                        time_frame.get_duration()
+                    )
+                }
             }</p>
-            <p>{
-                let time_frame = entry2.clone().time_frame();
-                move || format!("{:?}", time_frame.get().get_utc_start_time())
-            }</p>
-            // <p>{move || format!("{:?}", entry.time_frame().get().get_end_time())}</p>
-            // <p>{move || format!("{:?}", entry.time_frame().get().get_utc_end_time())}</p>
-            // <p>{move || format!("{:?}", entry.time_frame().get().get_duration())}</p>
-            // <p>{move || format!("{:?}", entry.get().time_frame.get_start_time())}</p>
-            // <p>{move || format!("{:?}", entry.get().time_frame.get_utc_start_time())}</p>
-            // <p>{move || format!("{:?}", entry.get().time_frame.get_end_time())}</p>
-            // <p>{move || format!("{:?}", entry.get().time_frame.get_utc_end_time())}</p>
-            // <p>{move || format!("{:?}", entry.get().time_frame.get_duration())}</p>
             <hr/>
+        }
+    }
+
+    #[component]
+    pub fn CategoryDropDown(category_name: RwSignal<String>) -> impl IntoView {
+        let fmc =
+            use_context::<Arc<Fmc>>().expect("Fmc must be provided in higher-level component");
+
+        view! {
+            <label for="category-choice">"Choose a Category:"</label>
+            <input list="categories" id="category-choice" name="category-choice" bind:value=category_name />
+
+            <datalist id="categories">
+                <For
+                    each=move || fmc.categories.clone().inner()
+                    key=|row| row.clone().id().get()
+                    let:category
+                >
+                    <option value={
+                        let name = category.clone().name();
+                        move || name.get()
+                    }></option>
+                </For>
+            </datalist>
+        }
+    }
+
+    #[component]
+    pub fn CategoryDropDownOption(#[prop(into)] category: ArcField<Category>) -> impl IntoView {
+        view! {
+            <option value={
+                let name = category.clone().name();
+                move || name.get()
+            }></option>
         }
     }
 }

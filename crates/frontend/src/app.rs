@@ -91,7 +91,7 @@ pub fn App() -> impl IntoView {
         <main class="container">
             // <StoreExample />
             // <crate::store::EntryStoreTest />
-            <crate::fmc::fmc_example::EntryStoreTest />
+            <crate::fmc::fmc_example::EntryStoreTestNew />
         </main>
     }
 }
