@@ -83,7 +83,7 @@ impl Updatable<U_Group> for U_Group {
         let Self { id, name, note } = entity;
 
         let name_flag = name.is_some();
-        let note_flag = note.is_some();
+        let note_flag = note.as_option().is_some();
 
         // No fields requested to change → skip hitting the DB
         if !name_flag && !note_flag {
@@ -91,7 +91,7 @@ impl Updatable<U_Group> for U_Group {
         }
 
         let name_value = name;
-        let note_value = note.flatten();
+        let note_value = note.as_option().flatten();
 
         sqlx::query(
             "UPDATE category_group SET
@@ -158,7 +158,7 @@ pub mod tests {
         pool: &SqlitePool,
         id: Uuid,
         name: Option<String>,
-        note: Option<Option<String>>,
+        note: FieldUpdate<String>,
     ) -> Result<R_Group> {
         let params = U_Group { id, name, note };
         U_Group::update(pool, params).await?;
@@ -234,7 +234,7 @@ pub mod tests {
             &pool,
             entity.id,
             Some(name.clone()),
-            Some(Some(note.clone())),
+            FieldUpdate::Set(note.clone()),
         )
         .await
         .expect("Failed to update and read category group");
@@ -250,7 +250,7 @@ pub mod tests {
         let entity = create_and_read(&pool, None, None, None)
             .await
             .expect("Failed to create and read category group");
-        let updated = update_and_read(&pool, entity.id, None, None)
+        let updated = update_and_read(&pool, entity.id, None, FieldUpdate::Unchanged)
             .await
             .expect("Failed to update and read category group");
         assert_eq!(updated, entity);

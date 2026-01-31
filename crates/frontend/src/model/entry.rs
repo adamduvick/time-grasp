@@ -5,7 +5,7 @@ use model::{DurationMillis, Uuid};
 use reactive_stores::{Field, Patch, PatchField, Store, StorePath};
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, Sub};
-use time::{Duration, OffsetDateTime, PrimitiveDateTime, UtcDateTime, UtcOffset};
+use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset};
 
 use crate::model::support::get_timezone_offset;
 use crate::model::timeframe::TimeFrame;
@@ -24,6 +24,7 @@ pub struct Entry {
 }
 
 impl Entry {
+    #[deprecated]
     pub fn new(name: String) -> Entry {
         let id = Uuid::new_v4();
         let category_id = Uuid::parse_str("67607575-3ec7-49c0-a352-78a9358ede39").unwrap();
@@ -38,10 +39,51 @@ impl Entry {
         }
     }
 
-    pub fn with_offset(&mut self, offset: UtcOffset) {
-        leptos::logging::log!("Entry::with_offset {offset:?}");
-        self.time_frame.assume_offset(offset);
-    }
+    // #[deprecated]
+    // pub fn with_offset(&mut self, offset: UtcOffset) {
+    //     leptos::logging::log!("Entry::with_offset {offset:?}");
+    //     self.time_frame.assume_offset(offset);
+    // }
+
+    // pub fn get_start_date(&self, offset: UtcOffset) -> Date {
+    //     todo!();
+    // }
+
+    // pub fn get_start_time(&self, offset: UtcOffset) -> Time {
+    //     todo!();
+    // }
+
+    // pub fn get_end_date(&self, offset: UtcOffset) -> Option<Date> {
+    //     todo!();
+    // }
+
+    // pub fn get_end_time(&self, offset: UtcOffset) -> Option<Time> {
+    //     todo!();
+    // }
+
+    // pub fn get_duration(&self, offset: UtcOffset) -> Option<Duration> {
+    //     todo!();
+    // }
+
+    // pub fn set_start_date(&self, date: Date, offset: UtcOffset) {
+    //     todo!();
+    // }
+
+    // pub fn set_start_time(&self, time: Time, offset: UtcOffset) {
+    //     todo!();
+    // }
+
+    // pub fn set_end_date(&self, date: Date, offset: UtcOffset) {
+    //     todo!();
+    // }
+
+    // pub fn set_end_time(&self, time: Time, offset: UtcOffset) {
+    //     todo!();
+    // }
+
+    // pub fn set_duration(&self, duration: Duration, offset: UtcOffset) {
+    //     todo!();
+    // }
 }
 
 impl Updatable<dto::U_Entry> for Entry {
@@ -67,14 +109,17 @@ impl Updatable<dto::U_Entry> for Entry {
                 None
             },
             start_time: if self.time_frame != new.time_frame {
-                Some(new.time_frame.get_utc_start_time().into())
+                Some(new.time_frame.get_utc_start_datetime().into())
             } else {
                 None
             },
             end_time: if self.time_frame != new.time_frame {
-                Some(new.time_frame.get_utc_end_time().map(|dt| dt.into()))
+                match &new.time_frame.get_utc_end_datetime() {
+                    Some(dt) => model::FieldUpdate::Set((*dt).into()),
+                    None => model::FieldUpdate::Clear,
+                }
             } else {
-                None
+                model::FieldUpdate::Unchanged
             },
         }
     }
@@ -101,8 +146,8 @@ impl From<Entry> for dto::C_Entry {
             name: value.name,
             note: value.note,
             category_id: value.category_id,
-            start_time: value.time_frame.get_utc_start_time().into(),
-            end_time: value.time_frame.get_utc_end_time().map(|dt| dt.into()),
+            start_time: value.time_frame.get_utc_start_datetime().into(),
+            end_time: value.time_frame.get_utc_end_datetime().map(|dt| dt.into()),
         }
     }
 }

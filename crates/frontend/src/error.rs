@@ -28,6 +28,10 @@ pub enum Error {
     /// Error received while serializing or deserializing a value.
     #[error("Serde error: {0}")]
     Time(String),
+
+    /// Error received while serializing or deserializing a value.
+    #[error("FmcProvider error: Signal Disposed")]
+    FmcProvider,
 }
 
 impl From<JsValue> for Error {

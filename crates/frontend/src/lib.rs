@@ -5,6 +5,7 @@
 #![allow(unused_variables)]
 
 pub mod app;
+pub mod components;
 pub mod error;
 pub mod fmc;
 pub mod ipc;
@@ -17,6 +18,9 @@ use wasm_bindgen::prelude::*;
 pub fn start() {
     console_error_panic_hook::set_once();
     mount_to_body(|| {
-        view! { <app::App/> }
+        view! {
+            // <app::App/>
+            <components::app::App/>
+        }
     });
 }

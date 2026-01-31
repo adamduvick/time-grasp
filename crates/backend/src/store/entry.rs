@@ -142,7 +142,7 @@ impl Updatable<U_Entry> for U_Entry {
         let note_flag = note.as_option().is_some();
         let category_flag = category_id.is_some();
         let start_flag = start_time.is_some();
-        let end_flag = end_time.is_some();
+        let end_flag = end_time.as_option().is_some();
 
         // No fields requested to change → skip hitting the DB
         if !name_flag && !note_flag && !category_flag && !start_flag && !end_flag {
@@ -153,7 +153,7 @@ impl Updatable<U_Entry> for U_Entry {
         let note_value = note.as_option().flatten();
         let category_value = category_id;
         let start_value = start_time;
-        let end_value = end_time.flatten();
+        let end_value = end_time.as_option().flatten();
 
         sqlx::query(
             "UPDATE entry SET
@@ -237,7 +237,7 @@ pub mod tests {
         note: FieldUpdate<String>,
         category_id: Option<Uuid>,
         start_time: Option<EpochMillis>,
-        end_time: Option<Option<EpochMillis>>,
+        end_time: FieldUpdate<EpochMillis>,
     ) -> Result<R_Entry> {
         let params = U_Entry {
             id,
@@ -325,7 +325,7 @@ pub mod tests {
             FieldUpdate::Set(note.clone()),
             None,
             None,
-            None,
+            FieldUpdate::Unchanged,
         )
         .await
         .expect("Failed to update and read entry");
@@ -350,7 +350,7 @@ pub mod tests {
             FieldUpdate::Unchanged,
             None,
             Some(start_time),
-            Some(Some(end_time)),
+            FieldUpdate::Set(end_time),
         )
         .await;
 
@@ -371,7 +371,7 @@ pub mod tests {
             FieldUpdate::Unchanged,
             None,
             Some(start_time),
-            Some(Some(end_time)),
+            FieldUpdate::Set(end_time),
         )
         .await
         .expect("Failed to update and read entry");
@@ -392,7 +392,7 @@ pub mod tests {
             FieldUpdate::Unchanged,
             None,
             None,
-            None,
+            FieldUpdate::Unchanged,
         )
         .await
         .expect("Failed to update and read entry group");

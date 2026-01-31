@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::EpochMillis;
+use crate::{EpochMillis, FieldUpdate};
 
 /// A complete category record as stored in the database.
 ///
@@ -89,7 +89,7 @@ pub struct CategoryForUpdate {
 
     /// Optional new note. `Some(Some(text))` sets a note,
     /// `Some(None)` clears it, and `None` means "leave unchanged".
-    pub note: Option<Option<String>>,
+    pub note: FieldUpdate<String>,
 
     /// Optional new group id to move the category to.
     pub group_id: Option<Uuid>,

@@ -8,6 +8,15 @@ pub fn get_timezone_offset_seconds() -> i32 {
 }
 
 pub fn get_timezone_offset() -> UtcOffset {
-    // TODO learn if this can ever fail if we get the offset directly from the browser API
-    UtcOffset::from_whole_seconds(get_timezone_offset_seconds()).unwrap()
+    match UtcOffset::from_whole_seconds(get_timezone_offset_seconds()) {
+        Ok(offset) => offset,
+        Err(err) => {
+            // TODO log to sentry
+            // TODO consider bubble up the error to be handled in Fmc instead
+            // then it could fallback to last-known good value instead
+            leptos::logging::log!("{err:?}");
+            // fallback to UTC if this fails
+            UtcOffset::UTC
+        }
+    }
 }

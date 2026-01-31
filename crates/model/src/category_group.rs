@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::EpochMillis;
+use crate::{EpochMillis, FieldUpdate};
 
 /// A full representation of a category group as stored in the database.
 ///
@@ -81,7 +81,7 @@ pub struct CategoryGroupForUpdate {
 
     /// Optional new note. `Some(Some(text))` sets a note,
     /// `Some(None)` clears it, and `None` means "leave unchanged".
-    pub note: Option<Option<String>>,
+    pub note: FieldUpdate<String>,
 }
 
 /// Parameters required to delete (tombstone) a `CategoryGroup`.

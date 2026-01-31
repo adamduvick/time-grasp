@@ -117,7 +117,7 @@ pub struct EntryForUpdate {
     /// Optional new end time. `Some(Some(ts))` sets an end time,
     /// `Some(None)` clears it (marks in-progress), and `None` means
     /// "leave unchanged".
-    pub end_time: Option<Option<EpochMillis>>,
+    pub end_time: FieldUpdate<EpochMillis>,
 }
 
 /// Parameters required to delete (tombstone) an `Entry`.

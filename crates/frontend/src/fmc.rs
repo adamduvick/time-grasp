@@ -100,7 +100,12 @@ impl Fmc {
         Ok(Arc::new(fmc))
     }
 
+    pub fn entries(&self) -> ArcStore<KeyedVec<Uuid, Entry>> {
+        self.entries.clone()
+    }
+
     pub fn get_offset(&self) -> ArcRwSignal<UtcOffset> {
+        // TODO return a memo here
         self.offset.clone()
     }
 
@@ -142,10 +147,11 @@ impl Fmc {
 
 // region:     --- CRUD operations
 
-trait Crud<T> {
+pub trait Crud<T> {
     /// Add item to the store and persist the creation to disk
     fn create(&self, item: T);
     /// Get item by its id
+    /// TODO should return Option<ArcField<T>> or maybe Option<T>
     fn get(&self, id: Uuid) -> ArcField<T>;
     /// Update the previous version of item in the store and persist the changes to disk
     ///
@@ -333,7 +339,7 @@ pub mod fmc_example {
     use leptos::{html, prelude::*};
     use model::category;
     use reactive_stores::{ArcField, Field, Store};
-    use time::{UtcOffset, format_description, macros::format_description};
+    use time::{Date, Time, UtcOffset, format_description, macros::format_description};
     use web_sys::{HtmlInputElement, MouseEvent, SubmitEvent};
 
     use crate::{
@@ -384,6 +390,7 @@ pub mod fmc_example {
     #[component]
     fn EntryEditView(#[prop(into)] entry: ArcField<Entry>) -> impl IntoView {
         let fmc = use_context::<Arc<Fmc>>().expect("expected Fmc to be provided");
+        let offset = fmc.get_offset();
         let category: ArcField<Category> = fmc.get(entry.clone().category_id().get_untracked());
 
         let date_format =
@@ -397,8 +404,7 @@ pub mod fmc_example {
             .clone()
             .time_frame()
             .get_untracked()
-            .with_offset(get_timezone_offset())
-            .get_start_time();
+            .get_start_datetime(offset.get());
         let start_date = RwSignal::new(start_datetime.date().format(&date_format).unwrap());
         let start_time = RwSignal::new(start_datetime.time().format(&time_format).unwrap());
 
@@ -447,95 +453,137 @@ pub mod fmc_example {
         }
     }
 
-    #[component]
-    fn ValidatedInput<V>(
-        #[prop(into)] input_type: String,
-        input_signal: RwSignal<String>,
-        validator: V,
-        #[prop(into)] validation_error_message: String,
-    ) -> impl IntoView
-    where
-        V: Fn(&String) -> bool + 'static,
-    {
-        let input_ref = NodeRef::<html::Input>::new();
+    // #[component]
+    // fn StartTimeInput(#[prop(into)] entry: ArcField<Entry>) -> impl IntoView {
+    //     let fmc = use_context::<Arc<Fmc>>().expect("Fmc provided");
+    //     let offset = fmc.get_offset();
+    //     let time_format = format_description!("[hour]:[minute]");
+    //     let timeframe = entry.clone().time_frame().get_untracked();
+    //     let input_signal = RwSignal::new(
+    //         timeframe
+    //             .get_start_time(offset.get_untracked())
+    //             .format(&time_format)
+    //             .expect("start time should parse"),
+    //     );
+    //     let output_signal = RwSignal::new(Option::<Time>::None);
+    //     let validator = {
+    //         let entry = entry.clone();
+    //         move |start_time: &Time| {
+    //             if let Some(end_time) = entry.clone().time_frame().get().get_end_time(offset.get())
+    //             {
+    //                 start_time <= &end_time
+    //             } else {
+    //                 true
+    //             }
+    //         }
+    //     };
+    //     let parser = {
+    //         let time_format = format_description!("[hour]:[minute]");
+    //         move |input_str: &String| Time::parse(input_str, &time_format).ok()
+    //     };
 
-        let handle_input = move |ev| {
-            let value_str = event_target_value(&ev);
-            input_signal.set(value_str.clone());
+    //     view! {
+    //         <ValidatedInputParsed
+    //             input_type="time"
+    //             input_signal=input_signal
+    //             output_signal=output_signal
+    //             validator=validator
+    //             validation_error_message="Start time must be earlier than end time"
+    //             parser=parser
+    //             parse_error_message="Invalid input"
+    //         />
+    //     }
+    // }
 
-            if let Some(input) = input_ref.get() {
-                // Now validate the parsed value
-                if validator(&value_str) {
-                    input.set_custom_validity("");
-                } else {
-                    input.set_custom_validity(&validation_error_message);
-                }
-            }
-        };
+    // #[component]
+    // fn ValidatedInput<V>(
+    //     #[prop(into)] input_type: String,
+    //     input_signal: RwSignal<String>,
+    //     validator: V,
+    //     #[prop(into)] validation_error_message: String,
+    // ) -> impl IntoView
+    // where
+    //     V: Fn(&String) -> bool + 'static,
+    // {
+    //     let input_ref = NodeRef::<html::Input>::new();
 
-        view! {
-            <input
-                node_ref=input_ref
-                type=input_type
-                required
-                on:input=handle_input
-                prop:value=move || input_signal.get().to_string()
-            />
-        }
-    }
+    //     let handle_input = move |ev| {
+    //         let value_str = event_target_value(&ev);
+    //         input_signal.set(value_str.clone());
 
-    #[component]
-    fn ValidatedInputParsed<V, P, T>(
-        #[prop(into)] input_type: String,
-        input_signal: RwSignal<String>,
-        output_signal: RwSignal<Option<T>>,
-        validator: V,
-        #[prop(into)] validation_error_message: String,
-        parser: P,
-        #[prop(into)] parse_error_message: String,
-    ) -> impl IntoView
-    where
-        V: Fn(&String) -> bool + 'static,
-        P: Fn(&String) -> Option<T> + 'static,
-        T: Clone + Send + Sync + 'static,
-    {
-        let input_ref = NodeRef::<html::Input>::new();
+    //         if let Some(input) = input_ref.get() {
+    //             // Now validate the parsed value
+    //             if validator(&value_str) {
+    //                 input.set_custom_validity("");
+    //             } else {
+    //                 input.set_custom_validity(&validation_error_message);
+    //             }
+    //         }
+    //     };
 
-        let handle_input = move |ev| {
-            let value_str = event_target_value(&ev);
-            input_signal.set(value_str.clone());
+    //     view! {
+    //         <input
+    //             node_ref=input_ref
+    //             type=input_type
+    //             required
+    //             on:input=handle_input
+    //             prop:value=move || input_signal.get().to_string()
+    //         />
+    //     }
+    // }
 
-            if let Some(input) = input_ref.get() {
-                // Try to parse the string into T
-                match parser(&value_str) {
-                    Some(parsed_value) => {
-                        output_signal.set(Some(parsed_value.clone()));
+    // #[component]
+    // fn ValidatedInputParsed<V, P, T>(
+    //     #[prop(into)] input_type: String,
+    //     input_signal: RwSignal<String>,
+    //     output_signal: RwSignal<Option<T>>,
+    //     validator: V,
+    //     #[prop(into)] validation_error_message: String,
+    //     parser: P,
+    //     #[prop(into)] parse_error_message: String,
+    // ) -> impl IntoView
+    // where
+    //     V: Fn(&T) -> bool + 'static,
+    //     P: Fn(&String) -> Option<T> + 'static,
+    //     T: Clone + Send + Sync + 'static,
+    // {
+    //     let input_ref = NodeRef::<html::Input>::new();
 
-                        // Now validate the parsed value
-                        if validator(&value_str) {
-                            input.set_custom_validity("");
-                        } else {
-                            input.set_custom_validity(&validation_error_message);
-                        }
-                    }
-                    None => {
-                        // If parsing fails, mark as invalid
-                        input.set_custom_validity(&parse_error_message);
-                    }
-                }
-            }
-        };
+    //     let handle_input = move |ev| {
+    //         let value_str = event_target_value(&ev);
+    //         input_signal.set(value_str.clone());
 
-        view! {
-            <input
-                node_ref=input_ref
-                type=input_type
-                required
-                on:input=handle_input
-                prop:value=move || input_signal.get().to_string()
-            />
-        }
-    }
+    //         if let Some(input) = input_ref.get() {
+    //             // Try to parse the string into T
+    //             match parser(&value_str) {
+    //                 Some(parsed_value) => {
+    //                     output_signal.set(Some(parsed_value.clone()));
+
+    //                     // Now validate the parsed value
+    //                     if validator(&parsed_value) {
+    //                         input.set_custom_validity("");
+    //                     } else {
+    //                         input.set_custom_validity(&validation_error_message);
+    //                     }
+    //                 }
+    //                 None => {
+    //                     // If parsing fails, mark as invalid
+    //                     input.set_custom_validity(&parse_error_message);
+    //                 }
+    //             }
+    //         }
+    //     };
+
+    //     view! {
+    //         <input
+    //             node_ref=input_ref
+    //             type=input_type
+    //             required
+    //             on:input=handle_input
+    //             prop:value=move || input_signal.get().to_string()
+    //         />
+    //     }
+    // }
 
     #[component]
     pub fn EntryStoreTest() -> impl IntoView {
@@ -676,10 +724,10 @@ pub mod fmc_example {
                 let time_frame = entry1.clone().time_frame();
                 let offset = fmc.get_offset();
                 move || {
-                    let time_frame = time_frame.get().with_offset(offset.get());
+                    let time_frame = time_frame.get();
                     format!("{:?} - {:?} - {:?}",
-                        time_frame.get_start_time(),
-                        time_frame.get_end_time(),
+                        time_frame.get_start_datetime(offset.get()),
+                        time_frame.get_end_datetime(offset.get()),
                         time_frame.get_duration()
                     )
                 }
