@@ -27,6 +27,7 @@ unsafe_code = "forbid"
 backend = { path = "./crates/backend", default-features = false }
 frontend = { path = "./crates/frontend", default-features = false }
 model = { path = "./crates/model", default-features = false }
+radix = { path = "./crates/radix", default-features = false }
 
 # member deps
 anyhow = { version = "1.0.100", default-features = false }
