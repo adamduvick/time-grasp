@@ -596,6 +596,7 @@ pub mod fmc_example {
                 provide_context(Arc::clone(&fmc));
 
                 let fmc_clone = Arc::clone(&fmc);
+                #[allow(deprecated)]
                 let new_entry =
                     move |_| fmc_clone.create(Entry::new("new @ current time".to_string()));
 
