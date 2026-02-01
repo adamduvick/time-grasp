@@ -7023,6 +7023,8 @@ dependencies = [
  "leptos_router",
  "leptos_router_macro",
  "radix",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -5,11 +5,11 @@ use leptos_router::components::A;
 pub fn Home() -> impl IntoView {
     let primitives = crate::routes::primitives()
         .into_iter()
-        .map(|(route, title, description)| {
+        .map(|p| {
             view! {
-                <A href=route attr:class="primitive-card">
-                    <h2>{title}</h2>
-                    <p>{description}</p>
+                <A href=p.path attr:class="primitive-card">
+                    <h2>{p.name}</h2>
+                    <p>{p.description}</p>
                 </A>
 
             }

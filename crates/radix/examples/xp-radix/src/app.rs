@@ -18,9 +18,13 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/context-menu") view=crate::routes::ContextMenuExample />
                     <Route path=path!("/dialog") view=crate::routes::DialogExample />
                     <Route path=path!("/dropdown") view=crate::routes::DropdownExample />
+                    <Route path=path!("/form") view=crate::routes::FormExample />
                     <Route path=path!("/hover-card") view=crate::routes::HoverCardExample />
+                    <Route path=path!("/label") view=crate::routes::LabelExample />
                     <Route path=path!("/menubar") view=crate::routes::MenubarExample />
                     <Route path=path!("/navigation-menu") view=crate::routes::NavigationMenuExample />
+                    <Route path=path!("/otp-field") view=crate::routes::OtpFieldExample />
+                    <Route path=path!("/password-toggle-field") view=crate::routes::PasswordToggleFieldExample />
                     <Route path=path!("/popover") view=crate::routes::PopoverExample />
                     <Route path=path!("/progress") view=crate::routes::ProgressExample />
                     <Route path=path!("/radio-group") view=crate::routes::RadioGroupExample />
@@ -35,6 +39,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/toggle-group") view=crate::routes::ToggleGroupExample />
                     <Route path=path!("/toolbar") view=crate::routes::ToolbarExample />
                     <Route path=path!("/tooltip") view=crate::routes::TooltipExample />
+                    <Route path=path!("/visually-hidden") view=crate::routes::VisuallyHiddenExample />
                 </ParentRoute>
             </Routes>
         </Router>
