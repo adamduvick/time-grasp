@@ -60,6 +60,14 @@ pub fn ScrollAreaRoot(
     #[prop(default = 600.into(), into)]
     scroll_hide_delay: Signal<u64>,
 
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the root element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the root element.
     #[prop(optional)]
     node_ref: NodeRef<Div>,
@@ -95,13 +103,19 @@ pub fn ScrollAreaRoot(
 
     provide_context(ctx);
 
+    let computed_style = move || {
+        let base = "position: relative; overflow: hidden; width: 100%; height: 100%";
+        match &style {
+            Some(s) => format!("{}; {}", base, s),
+            None => base.to_string(),
+        }
+    };
+
     view! {
         <div
             node_ref=node_ref
-            style:position="relative"
-            style:overflow="hidden"
-            style:width="100%"
-            style:height="100%"
+            class=class
+            style=computed_style
             data-radix-scroll-area=""
         >
             {children()}
@@ -119,6 +133,14 @@ pub fn ScrollAreaRoot(
 /// ```
 #[component]
 pub fn ScrollAreaViewport(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the viewport element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the viewport element.
     #[prop(optional)]
     _node_ref: NodeRef<Div>,
@@ -160,13 +182,19 @@ pub fn ScrollAreaViewport(
         ctx.client_width.set(el.client_width() as f64);
     });
 
+    let computed_style = move || {
+        let base = "overflow: scroll; scrollbar-width: none; width: 100%; height: 100%";
+        match &style {
+            Some(s) => format!("{}; {}", base, s),
+            None => base.to_string(),
+        }
+    };
+
     view! {
         <div
             node_ref=viewport_ref
-            style:overflow="scroll"
-            style:scrollbar-width="none"
-            style:width="100%"
-            style:height="100%"
+            class=class
+            style=computed_style
             data-radix-scroll-area-viewport=""
         >
             {children()}
@@ -184,6 +212,14 @@ pub fn ScrollAreaScrollbar(
     /// Force the scrollbar to always be visible.
     #[prop(default = false.into(), into)]
     force_mount: Signal<bool>,
+
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the scrollbar element.
+    #[prop(optional, into)]
+    style: Option<String>,
 
     /// Reference to the scrollbar element.
     #[prop(optional)]
@@ -233,13 +269,24 @@ pub fn ScrollAreaScrollbar(
         }
     };
 
+    let style_stored = StoredValue::new(style);
+    let computed_style = move || {
+        let display = if is_visible.get() { "block" } else { "none" };
+        let base = format!(
+            "position: absolute; display: {}; user-select: none; touch-action: none",
+            display
+        );
+        match style_stored.get_value() {
+            Some(s) => format!("{}; {}", base, s),
+            None => base,
+        }
+    };
+
     view! {
         <div
             node_ref=node_ref
-            style:position="absolute"
-            style:display=move || if is_visible.get() { "block" } else { "none" }
-            style:user-select="none"
-            style:touch-action="none"
+            class=class
+            style=computed_style
             data-radix-scroll-area-scrollbar=""
             data-orientation=orientation_attr
             data-state=state_attr
@@ -252,6 +299,14 @@ pub fn ScrollAreaScrollbar(
 /// Draggable scrollbar thumb.
 #[component]
 pub fn ScrollAreaThumb(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the thumb element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the thumb element.
     #[prop(optional)]
     node_ref: NodeRef<Div>,
@@ -396,34 +451,37 @@ pub fn ScrollAreaThumb(
         }
     };
 
+    let style_stored = StoredValue::new(style);
+    let computed_style = move || {
+        let (width, height, top, left) = match orientation.get() {
+            Orientation::Vertical => (
+                "100%".to_string(),
+                format!("{}%", thumb_size.get()),
+                format!("{}%", thumb_position.get()),
+                "0".to_string(),
+            ),
+            Orientation::Horizontal => (
+                format!("{}%", thumb_size.get()),
+                "100%".to_string(),
+                "0".to_string(),
+                format!("{}%", thumb_position.get()),
+            ),
+        };
+        let base = format!(
+            "position: absolute; width: {}; height: {}; top: {}; left: {}",
+            width, height, top, left
+        );
+        match style_stored.get_value() {
+            Some(s) => format!("{}; {}", base, s),
+            None => base,
+        }
+    };
+
     view! {
         <div
             node_ref=node_ref
-            style:position="absolute"
-            style:width=move || {
-                match orientation.get() {
-                    Orientation::Vertical => "100%".to_string(),
-                    Orientation::Horizontal => format!("{}%", thumb_size.get()),
-                }
-            }
-            style:height=move || {
-                match orientation.get() {
-                    Orientation::Vertical => format!("{}%", thumb_size.get()),
-                    Orientation::Horizontal => "100%".to_string(),
-                }
-            }
-            style:top=move || {
-                match orientation.get() {
-                    Orientation::Vertical => format!("{}%", thumb_position.get()),
-                    Orientation::Horizontal => "0".to_string(),
-                }
-            }
-            style:left=move || {
-                match orientation.get() {
-                    Orientation::Vertical => "0".to_string(),
-                    Orientation::Horizontal => format!("{}%", thumb_position.get()),
-                }
-            }
+            class=class
+            style=computed_style
             data-radix-scroll-area-thumb=""
             data-state=state_attr
             on:pointerdown=on_pointer_down
@@ -436,16 +494,31 @@ pub fn ScrollAreaThumb(
 /// Corner element where vertical and horizontal scrollbars meet.
 #[component]
 pub fn ScrollAreaCorner(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the corner element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the corner element.
     #[prop(optional)]
     node_ref: NodeRef<Div>,
 ) -> impl IntoView {
+    let computed_style = move || {
+        let base = "position: absolute; right: 0; bottom: 0";
+        match &style {
+            Some(s) => format!("{}; {}", base, s),
+            None => base.to_string(),
+        }
+    };
+
     view! {
         <div
             node_ref=node_ref
-            style:position="absolute"
-            style:right="0"
-            style:bottom="0"
+            class=class
+            style=computed_style
             data-radix-scroll-area-corner=""
         />
     }

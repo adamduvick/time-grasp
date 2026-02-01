@@ -15,7 +15,7 @@
     "path": "/aspect-ratio",
     "name": "AspectRatio",
     "description": "Maintains consistent width/height ratio",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/avatar",
@@ -117,7 +117,7 @@
     "path": "/scroll-area",
     "name": "ScrollArea",
     "description": "Custom scrollbars with consistent cross-browser styling",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/select",
