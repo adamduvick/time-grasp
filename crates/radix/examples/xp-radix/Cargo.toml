@@ -7,3 +7,4 @@ edition = "2024"
 leptos = { workspace = true, features = ["csr"] }
 leptos_router = "0.8.11"
 leptos_router_macro = "0.8.6"
+radix = { path = "../.." }

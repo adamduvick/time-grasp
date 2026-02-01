@@ -33,6 +33,14 @@ struct AvatarContext {
 /// Root container for the avatar. Renders as a span and provides context.
 #[component]
 pub fn AvatarRoot(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the root element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the root span element.
     #[prop(optional)]
     node_ref: NodeRef<Span>,
@@ -45,14 +53,10 @@ pub fn AvatarRoot(
 
     provide_context(ctx);
 
-    // Circular avatar with default size, centered content
-    let style = "display:inline-flex;align-items:center;justify-content:center;\
-                 width:48px;height:48px;border-radius:50%;overflow:hidden;\
-                 vertical-align:middle;user-select:none";
-
     view! {
         <span
             node_ref=node_ref
+            class=class
             style=style
             data-radix-avatar-root=""
         >
@@ -71,6 +75,14 @@ pub fn AvatarImage(
     /// Alt text for the image.
     #[prop(default = "".into(), into)]
     alt: Signal<String>,
+
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the image element.
+    #[prop(optional, into)]
+    style: Option<String>,
 
     /// Reference to the img element.
     #[prop(optional)]
@@ -92,17 +104,18 @@ pub fn AvatarImage(
         ctx.status.set(ImageLoadingStatus::Error);
     };
 
-    // Only show when loaded
-    let style = move || {
+    // Only show when loaded, merge with user-provided style
+    let user_style = style.clone();
+    let computed_style = move || {
         let display = if ctx.status.get() == ImageLoadingStatus::Loaded {
             "block"
         } else {
             "none"
         };
-        format!(
-            "display:{};width:100%;height:100%;object-fit:cover",
-            display
-        )
+        match &user_style {
+            Some(s) => format!("display:{};{}", display, s),
+            None => format!("display:{}", display),
+        }
     };
 
     let state_attr = move || ctx.status.get().as_str();
@@ -112,7 +125,8 @@ pub fn AvatarImage(
             node_ref=node_ref
             src=src
             alt=alt
-            style=style
+            class=class
+            style=computed_style
             data-radix-avatar-image=""
             data-state=state_attr
             on:load=on_load
@@ -127,6 +141,14 @@ pub fn AvatarFallback(
     /// Delay in milliseconds before showing fallback (prevents flash on fast loads).
     #[prop(optional)]
     delay_ms: Option<u32>,
+
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the fallback element.
+    #[prop(optional, into)]
+    style: Option<String>,
 
     /// Reference to the fallback span element.
     #[prop(optional)]
@@ -173,9 +195,6 @@ pub fn AvatarFallback(
         }
     });
 
-    let style = "display:flex;align-items:center;justify-content:center;\
-                 width:100%;height:100%;background:#e0e0e0;font-size:16px;font-weight:500";
-
     let state_attr = move || ctx.status.get().as_str();
 
     let visible = move || {
@@ -183,11 +202,16 @@ pub fn AvatarFallback(
         status != ImageLoadingStatus::Loaded && can_render.get()
     };
 
+    // Store class/style for the closure
+    let class_stored = StoredValue::new(class);
+    let style_stored = StoredValue::new(style);
+
     view! {
         <Show when=visible>
             <span
                 node_ref=node_ref
-                style=style
+                class=class_stored.get_value()
+                style=style_stored.get_value()
                 data-radix-avatar-fallback=""
                 data-state=state_attr
             >

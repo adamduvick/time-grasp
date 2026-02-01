@@ -7022,6 +7022,7 @@ dependencies = [
  "leptos",
  "leptos_router",
  "leptos_router_macro",
+ "radix",
 ]
 
 [[package]]
