@@ -1,6 +1,7 @@
 use leptos::html::Div;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
+use web_sys::PointerEvent;
 
 /// Slider orientation
 #[derive(Clone, Copy, PartialEq, Default, Debug)]
@@ -24,17 +25,14 @@ struct SliderContext {
 }
 
 impl SliderContext {
-    /// Focus the thumb element for keyboard navigation
-    fn focus_thumb(&self) {
-        if let Some(thumb_ref) = self.thumb_ref.get() {
-            if let Some(el) = thumb_ref.get() {
-                _ = el.focus();
-            }
-        }
+    fn provide(self) {
+        provide_context(self);
     }
-}
 
-impl SliderContext {
+    fn expect() -> Self {
+        use_context().expect("SliderRange must be used within SliderRoot")
+    }
+
     /// Clamp and step-align a value
     fn clamp_value(&self, val: f64) -> f64 {
         let min = self.min.get_untracked();
@@ -50,6 +48,62 @@ impl SliderContext {
     fn set_value(&self, val: f64) {
         let clamped = self.clamp_value(val);
         self.value.set(clamped);
+    }
+
+    /// Focus the thumb element for keyboard navigation
+    fn focus_thumb(&self) {
+        if let Some(thumb_ref) = self.thumb_ref.get() {
+            if let Some(el) = thumb_ref.get() {
+                _ = el.focus();
+            }
+        }
+    }
+
+    fn orientation_attr(&self) -> Memo<&'static str> {
+        let orientation = self.orientation;
+        Memo::new(move |_| match orientation.get() {
+            SliderOrientation::Horizontal => "horizontal",
+            SliderOrientation::Vertical => "vertical",
+        })
+    }
+
+    fn on_pointer_down(self) -> impl Fn(PointerEvent) {
+        move |ev: web_sys::PointerEvent| {
+            {
+                if self.disabled.get() {
+                    return;
+                }
+
+                ev.prevent_default();
+
+                let Some(track_el) = self.track_ref.get() else {
+                    return;
+                };
+
+                let rect = track_el.get_bounding_client_rect();
+                let orientation = self.orientation.get();
+
+                let percent = match orientation {
+                    SliderOrientation::Horizontal => {
+                        let x = ev.client_x() as f64 - rect.left();
+                        (x / rect.width()).clamp(0.0, 1.0)
+                    }
+                    SliderOrientation::Vertical => {
+                        // For vertical, 0% is at bottom, 100% at top
+                        let y = ev.client_y() as f64 - rect.top();
+                        (1.0 - y / rect.height()).clamp(0.0, 1.0)
+                    }
+                };
+
+                let min = self.min.get();
+                let max = self.max.get();
+                let new_value = min + percent * (max - min);
+                self.set_value(new_value);
+
+                // Focus the thumb for keyboard navigation
+                self.focus_thumb();
+            }
+        }
     }
 }
 
@@ -99,13 +153,7 @@ pub fn SliderRoot(
         track_ref,
         thumb_ref,
     };
-
-    provide_context(ctx);
-
-    let orientation_attr = move || match orientation.get() {
-        SliderOrientation::Horizontal => "horizontal",
-        SliderOrientation::Vertical => "vertical",
-    };
+    ctx.provide();
 
     view! {
         <div
@@ -116,7 +164,7 @@ pub fn SliderRoot(
             style:user-select="none"
             style:touch-action="none"
             data-radix-slider-root=""
-            data-orientation=orientation_attr
+            data-orientation=ctx.orientation_attr()
             data-disabled=move || disabled.get().then_some("")
         >
             {children()}
@@ -130,50 +178,7 @@ pub fn SliderTrack(
     /// The track content (typically SliderRange).
     children: ChildrenFn,
 ) -> impl IntoView {
-    let ctx = use_context::<SliderContext>().expect("SliderTrack must be used within SliderRoot");
-
-    let track_ref = ctx.track_ref;
-
-    // Handle click on track to jump to position
-    let on_pointer_down = move |ev: web_sys::PointerEvent| {
-        if ctx.disabled.get() {
-            return;
-        }
-
-        ev.prevent_default();
-
-        let Some(track_el) = track_ref.get() else {
-            return;
-        };
-
-        let rect = track_el.get_bounding_client_rect();
-        let orientation = ctx.orientation.get();
-
-        let percent = match orientation {
-            SliderOrientation::Horizontal => {
-                let x = ev.client_x() as f64 - rect.left();
-                (x / rect.width()).clamp(0.0, 1.0)
-            }
-            SliderOrientation::Vertical => {
-                // For vertical, 0% is at bottom, 100% at top
-                let y = ev.client_y() as f64 - rect.top();
-                (1.0 - y / rect.height()).clamp(0.0, 1.0)
-            }
-        };
-
-        let min = ctx.min.get();
-        let max = ctx.max.get();
-        let new_value = min + percent * (max - min);
-        ctx.set_value(new_value);
-
-        // Focus the thumb for keyboard navigation
-        ctx.focus_thumb();
-    };
-
-    let orientation_attr = move || match ctx.orientation.get() {
-        SliderOrientation::Horizontal => "horizontal",
-        SliderOrientation::Vertical => "vertical",
-    };
+    let ctx = SliderContext::expect();
 
     let style = move || {
         let (width, height) = match ctx.orientation.get() {
@@ -189,12 +194,12 @@ pub fn SliderTrack(
 
     view! {
         <div
-            node_ref=track_ref
+            node_ref=ctx.track_ref
             style=style
             data-radix-slider-track=""
-            data-orientation=orientation_attr
+            data-orientation=ctx.orientation_attr()
             data-disabled=move || ctx.disabled.get().then_some("")
-            on:pointerdown=on_pointer_down
+            on:pointerdown=ctx.on_pointer_down()
         >
             {children()}
         </div>
@@ -208,7 +213,7 @@ pub fn SliderRange(
     #[prop(optional)]
     node_ref: NodeRef<Div>,
 ) -> impl IntoView {
-    let ctx = use_context::<SliderContext>().expect("SliderRange must be used within SliderRoot");
+    let ctx = SliderContext::expect();
 
     // Calculate percentage filled
     let percent = Signal::derive(move || {
@@ -222,11 +227,6 @@ pub fn SliderRange(
 
         ((value - min) / (max - min) * 100.0).clamp(0.0, 100.0)
     });
-
-    let orientation_attr = move || match ctx.orientation.get() {
-        SliderOrientation::Horizontal => "horizontal",
-        SliderOrientation::Vertical => "vertical",
-    };
 
     let style = move || {
         let (width, height, top, bottom) = match ctx.orientation.get() {
@@ -255,7 +255,7 @@ pub fn SliderRange(
             node_ref=node_ref
             style=style
             data-radix-slider-range=""
-            data-orientation=orientation_attr
+            data-orientation=ctx.orientation_attr()
             data-disabled=move || ctx.disabled.get().then_some("")
         />
     }
@@ -268,7 +268,7 @@ pub fn SliderThumb(
     #[prop(optional)]
     node_ref: NodeRef<Div>,
 ) -> impl IntoView {
-    let ctx = use_context::<SliderContext>().expect("SliderThumb must be used within SliderRoot");
+    let ctx = SliderContext::expect();
 
     // Register thumb ref with context for focus management
     ctx.thumb_ref.set(Some(node_ref));
@@ -382,11 +382,6 @@ pub fn SliderThumb(
         }
     };
 
-    let orientation_attr = move || match ctx.orientation.get() {
-        SliderOrientation::Horizontal => "horizontal",
-        SliderOrientation::Vertical => "vertical",
-    };
-
     let state_attr = move || {
         if is_dragging.get() {
             "dragging"
@@ -419,11 +414,11 @@ pub fn SliderThumb(
             aria-valuemin=move || ctx.min.get()
             aria-valuemax=move || ctx.max.get()
             aria-valuenow=move || ctx.value.get()
-            aria-orientation=orientation_attr
+            aria-orientation=ctx.orientation_attr()
             aria-disabled=move || ctx.disabled.get().then_some("true")
             style=style
             data-radix-slider-thumb=""
-            data-orientation=orientation_attr
+            data-orientation=ctx.orientation_attr()
             data-state=state_attr
             data-disabled=move || ctx.disabled.get().then_some("")
             on:pointerdown=on_pointer_down

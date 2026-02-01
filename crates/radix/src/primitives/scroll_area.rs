@@ -1,6 +1,6 @@
 use leptos::html::Div;
 use leptos::prelude::*;
-use leptos_use::{UseScrollOptions, UseScrollReturn, use_scroll_with_options};
+use leptos_use::{UseScrollOptions, UseScrollReturn, use_element_hover, use_scroll_with_options};
 use wasm_bindgen::JsCast;
 
 /// Scroll visibility behavior
@@ -40,7 +40,7 @@ struct ScrollAreaContext {
     client_height: RwSignal<f64>,
     client_width: RwSignal<f64>,
     // Visibility state
-    is_hovering: RwSignal<bool>,
+    is_hovering: Signal<bool>,
 }
 
 /// Context for scrollbar to share with thumb
@@ -67,8 +67,6 @@ pub fn ScrollAreaRoot(
     /// The content to render within the scroll area.
     children: ChildrenFn,
 ) -> impl IntoView {
-    let viewport_ref = NodeRef::<Div>::new();
-
     // Use leptos-use's use_scroll for scroll state tracking
     let UseScrollReturn {
         x: scroll_x,
@@ -76,15 +74,15 @@ pub fn ScrollAreaRoot(
         is_scrolling,
         ..
     } = use_scroll_with_options(
-        viewport_ref,
+        node_ref,
         UseScrollOptions::default().idle(scroll_hide_delay.get_untracked() as f64),
     );
 
-    let is_hovering = RwSignal::new(false);
+    let is_hovering = use_element_hover(node_ref);
 
     let ctx = ScrollAreaContext {
         scroll_type,
-        viewport_ref,
+        viewport_ref: node_ref,
         scroll_x,
         scroll_y,
         is_scrolling,
@@ -105,8 +103,6 @@ pub fn ScrollAreaRoot(
             style:width="100%"
             style:height="100%"
             data-radix-scroll-area=""
-            on:mouseenter=move |_| is_hovering.set(true)
-            on:mouseleave=move |_| is_hovering.set(false)
         >
             {children()}
         </div>
