@@ -18,6 +18,14 @@ pub fn SwitchRoot(
     #[prop(default = false.into(), into)]
     disabled: Signal<bool>,
 
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the root element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the root button element.
     #[prop(optional)]
     node_ref: NodeRef<Button>,
@@ -41,27 +49,16 @@ pub fn SwitchRoot(
 
     let state_attr = move || if checked.get() { "checked" } else { "unchecked" };
 
-    // Consolidated style to stay under attribute limit
-    let style = move || {
-        let bg = if checked.get() { "#3b82f6" } else { "#e0e0e0" };
-        format!(
-            "position:relative;display:inline-flex;align-items:center;\
-             width:44px;height:24px;padding:2px;border:none;border-radius:9999px;\
-             background:{};cursor:{};outline:none;transition:background 0.2s",
-            bg,
-            if disabled.get() { "not-allowed" } else { "pointer" }
-        )
-    };
-
     view! {
         <button
             node_ref=node_ref
             type="button"
             role="switch"
+            class=class
+            style=style
             aria-checked=move || checked.get().to_string()
             aria-disabled=move || disabled.get().then_some("true")
             disabled=move || disabled.get()
-            style=style
             data-radix-switch-root=""
             data-state=state_attr
             data-disabled=move || disabled.get().then_some("")
@@ -75,6 +72,14 @@ pub fn SwitchRoot(
 /// Visual thumb indicator that slides between positions based on checked state.
 #[component]
 pub fn SwitchThumb(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the thumb element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the thumb element.
     #[prop(optional)]
     node_ref: NodeRef<leptos::html::Span>,
@@ -83,20 +88,10 @@ pub fn SwitchThumb(
 
     let state_attr = move || if ctx.checked.get() { "checked" } else { "unchecked" };
 
-    // Consolidated style - thumb slides left/right based on checked state
-    let style = move || {
-        let translate_x = if ctx.checked.get() { "20px" } else { "0px" };
-        format!(
-            "display:block;width:20px;height:20px;background:white;border-radius:50%;\
-             box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:transform 0.2s;\
-             transform:translateX({})",
-            translate_x
-        )
-    };
-
     view! {
         <span
             node_ref=node_ref
+            class=class
             style=style
             data-radix-switch-thumb=""
             data-state=state_attr
