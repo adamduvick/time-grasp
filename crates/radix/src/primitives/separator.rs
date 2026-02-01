@@ -30,12 +30,17 @@ pub fn Separator(
     /// Optional class name.
     #[prop(optional, into)]
     class: Option<String>,
+
+    /// Optional inline styles.
+    #[prop(optional, into)]
+    style: Option<String>,
 ) -> impl IntoView {
     let ctx = SeparatorContext::new(orientation, decorative);
     view! {
         <div
             node_ref=node_ref
             class=class.unwrap_or_default()
+            style=style
             role=ctx.role
             aria-orientation=ctx.aria_orientation
             data-orientation=ctx.orientation_attr
