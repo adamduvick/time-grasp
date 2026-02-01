@@ -7016,6 +7016,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "xp-radix"
+version = "0.1.0"
+dependencies = [
+ "leptos",
+ "leptos_router",
+ "leptos_router_macro",
+]
+
+[[package]]
 name = "xxhash-rust"
 version = "0.8.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
