@@ -133,6 +133,14 @@ pub fn SliderRoot(
     #[prop(default = false.into(), into)]
     disabled: Signal<bool>,
 
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the root element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the root element.
     #[prop(optional)]
     node_ref: NodeRef<Div>,
@@ -158,11 +166,8 @@ pub fn SliderRoot(
     view! {
         <div
             node_ref=node_ref
-            style:position="relative"
-            style:display="flex"
-            style:align-items="center"
-            style:user-select="none"
-            style:touch-action="none"
+            class=class
+            style=style
             data-radix-slider-root=""
             data-orientation=ctx.orientation_attr()
             data-disabled=move || disabled.get().then_some("")
@@ -175,26 +180,23 @@ pub fn SliderRoot(
 /// Background track rail for the slider.
 #[component]
 pub fn SliderTrack(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the track element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// The track content (typically SliderRange).
     children: ChildrenFn,
 ) -> impl IntoView {
     let ctx = SliderContext::expect();
 
-    let style = move || {
-        let (width, height) = match ctx.orientation.get() {
-            SliderOrientation::Horizontal => ("100%", "8px"),
-            SliderOrientation::Vertical => ("8px", "100%"),
-        };
-        format!(
-            "position:relative;flex-grow:1;width:{};height:{};\
-             background:#e0e0e0;border-radius:4px;cursor:pointer",
-            width, height
-        )
-    };
-
     view! {
         <div
             node_ref=ctx.track_ref
+            class=class
             style=style
             data-radix-slider-track=""
             data-orientation=ctx.orientation_attr()
@@ -209,6 +211,14 @@ pub fn SliderTrack(
 /// Filled portion of the track showing the current value.
 #[component]
 pub fn SliderRange(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the range element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the range element.
     #[prop(optional)]
     node_ref: NodeRef<Div>,
@@ -228,32 +238,23 @@ pub fn SliderRange(
         ((value - min) / (max - min) * 100.0).clamp(0.0, 100.0)
     });
 
-    let style = move || {
-        let (width, height, top, bottom) = match ctx.orientation.get() {
-            SliderOrientation::Horizontal => (
-                format!("{}%", percent.get()),
-                "100%".to_string(),
-                "0".to_string(),
-                "auto".to_string(),
-            ),
-            SliderOrientation::Vertical => (
-                "100%".to_string(),
-                format!("{}%", percent.get()),
-                "auto".to_string(),
-                "0".to_string(),
-            ),
+    // Dynamic width/height based on orientation and value, merged with user style
+    let computed_style = move || {
+        let size_style = match ctx.orientation.get() {
+            SliderOrientation::Horizontal => format!("width: {}%", percent.get()),
+            SliderOrientation::Vertical => format!("height: {}%", percent.get()),
         };
-        format!(
-            "position:absolute;left:0;top:{};bottom:{};width:{};height:{};\
-             background:#3b82f6;border-radius:4px",
-            top, bottom, width, height
-        )
+        match &style {
+            Some(s) => format!("{}; {}", size_style, s),
+            None => size_style,
+        }
     };
 
     view! {
         <div
             node_ref=node_ref
-            style=style
+            class=class
+            style=computed_style
             data-radix-slider-range=""
             data-orientation=ctx.orientation_attr()
             data-disabled=move || ctx.disabled.get().then_some("")
@@ -264,6 +265,14 @@ pub fn SliderRange(
 /// Draggable thumb handle for the slider.
 #[component]
 pub fn SliderThumb(
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
+
+    /// Inline styles for the thumb element.
+    #[prop(optional, into)]
+    style: Option<String>,
+
     /// Reference to the thumb element.
     #[prop(optional)]
     node_ref: NodeRef<Div>,
@@ -390,25 +399,22 @@ pub fn SliderThumb(
         }
     };
 
-    // Build inline style string to reduce attribute count (tachys has 26 attr limit)
-    let style = move || {
-        let (left, top) = match ctx.orientation.get() {
-            SliderOrientation::Horizontal => (format!("{}%", percent.get()), "50%".to_string()),
-            SliderOrientation::Vertical => {
-                ("50%".to_string(), format!("{}%", 100.0 - percent.get()))
-            }
+    // Position the thumb based on value percentage, merged with user style
+    let computed_style = move || {
+        let pos_style = match ctx.orientation.get() {
+            SliderOrientation::Horizontal => format!("left: {}%", percent.get()),
+            SliderOrientation::Vertical => format!("bottom: {}%", percent.get()),
         };
-        format!(
-            "position:absolute;left:{};top:{};transform:translate(-50%,-50%);\
-             width:20px;height:20px;background:white;border:2px solid #3b82f6;\
-             border-radius:50%;cursor:pointer;outline:none",
-            left, top
-        )
+        match &style {
+            Some(s) => format!("{}; {}", pos_style, s),
+            None => pos_style,
+        }
     };
 
     view! {
         <div
             node_ref=node_ref
+            class=class
             tabindex=move || if ctx.disabled.get() { -1 } else { 0 }
             role="slider"
             aria-valuemin=move || ctx.min.get()
@@ -416,7 +422,7 @@ pub fn SliderThumb(
             aria-valuenow=move || ctx.value.get()
             aria-orientation=ctx.orientation_attr()
             aria-disabled=move || ctx.disabled.get().then_some("true")
-            style=style
+            style=computed_style
             data-radix-slider-thumb=""
             data-orientation=ctx.orientation_attr()
             data-state=state_attr

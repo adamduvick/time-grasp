@@ -135,7 +135,7 @@
     "path": "/slider",
     "name": "Slider",
     "description": "Range input with single or multiple thumbs",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/switch",

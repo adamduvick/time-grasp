@@ -649,6 +649,7 @@ button {
 }
 
 .slider-thumb {
+  position: absolute;
   display: block;
   width: 16px;
   height: 16px;
@@ -656,6 +657,9 @@ button {
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
+  transform: translateX(-50%);
+  top: 50%;
+  margin-top: -8px;
 }
 
 .slider-thumb:hover {
