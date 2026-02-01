@@ -4,16 +4,17 @@ use radix::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack
 #[component]
 pub fn SliderExample() -> impl IntoView {
     // Controlled state for various examples
-    let basic = RwSignal::new(50.0);
-    let controlled = RwSignal::new(50.0);
-    let step10 = RwSignal::new(50.0);
-    let step25 = RwSignal::new(50.0);
-    let volume = RwSignal::new(80.0);
-    let vertical1 = RwSignal::new(50.0);
-    let vertical2 = RwSignal::new(30.0);
-    let vertical3 = RwSignal::new(70.0);
-    let disabled = RwSignal::new(50.0);
-    let year = RwSignal::new(2020.0);
+    let basic = RwSignal::new(vec![50.0]);
+    let controlled = RwSignal::new(vec![50.0]);
+    let range = RwSignal::new(vec![25.0, 75.0]);
+    let step10 = RwSignal::new(vec![50.0]);
+    let step25 = RwSignal::new(vec![50.0]);
+    let volume = RwSignal::new(vec![80.0]);
+    let vertical1 = RwSignal::new(vec![50.0]);
+    let vertical2 = RwSignal::new(vec![30.0]);
+    let vertical3 = RwSignal::new(vec![70.0]);
+    let disabled = RwSignal::new(vec![50.0]);
+    let year = RwSignal::new(vec![2020.0]);
 
     view! {
         <h1>"Slider"</h1>
@@ -25,7 +26,7 @@ pub fn SliderExample() -> impl IntoView {
         // Basic Slider
         <div class="example-section">
             <h2>"Basic Slider"</h2>
-            <SliderRoot class="slider-root" value=basic>
+            <SliderRoot class="slider-root" values=basic>
                 <SliderTrack class="slider-track">
                     <SliderRange class="slider-range" />
                 </SliderTrack>
@@ -39,26 +40,42 @@ pub fn SliderExample() -> impl IntoView {
         // Controlled Value
         <div class="example-section">
             <h2>"Controlled Value"</h2>
-            <SliderRoot class="slider-root" value=controlled>
+            <SliderRoot class="slider-root" values=controlled>
                 <SliderTrack class="slider-track">
                     <SliderRange class="slider-range" />
                 </SliderTrack>
                 <SliderThumb class="slider-thumb" />
             </SliderRoot>
             <p style="margin-top: 0.5rem; font-size: 0.875rem">
-                "Value: "<strong>{move || controlled.get() as i32}</strong>
+                "Value: "<strong>{move || controlled.get().first().map(|v| *v as i32).unwrap_or(0)}</strong>
             </p>
             <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem">
-                <button class="trigger-button" on:click=move |_| controlled.set(0.0)>
+                <button class="trigger-button" on:click=move |_| controlled.set(vec![0.0])>
                     "Min"
                 </button>
-                <button class="trigger-button" on:click=move |_| controlled.set(50.0)>
+                <button class="trigger-button" on:click=move |_| controlled.set(vec![50.0])>
                     "50"
                 </button>
-                <button class="trigger-button" on:click=move |_| controlled.set(100.0)>
+                <button class="trigger-button" on:click=move |_| controlled.set(vec![100.0])>
                     "Max"
                 </button>
             </div>
+        </div>
+
+        // Range Slider (Two Thumbs)
+        <div class="example-section">
+            <h2>"Range Slider (Two Thumbs)"</h2>
+            <SliderRoot class="slider-root" values=range min_steps_between_thumbs=1>
+                <SliderTrack class="slider-track">
+                    <SliderRange class="slider-range" />
+                </SliderTrack>
+                <SliderThumb class="slider-thumb" />
+                <SliderThumb class="slider-thumb" />
+            </SliderRoot>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem">
+                "Range: "<strong>{move || range.get().first().map(|v| *v as i32).unwrap_or(0)}</strong>
+                " - "<strong>{move || range.get().get(1).map(|v| *v as i32).unwrap_or(0)}</strong>
+            </p>
         </div>
 
         // With Step
@@ -69,7 +86,7 @@ pub fn SliderExample() -> impl IntoView {
                     <p style="font-size: 0.875rem; margin-bottom: 0.5rem">
                         "Step: 10"
                     </p>
-                    <SliderRoot class="slider-root" value=step10 step=10.0>
+                    <SliderRoot class="slider-root" values=step10 step=10.0>
                         <SliderTrack class="slider-track">
                             <SliderRange class="slider-range" />
                         </SliderTrack>
@@ -80,7 +97,7 @@ pub fn SliderExample() -> impl IntoView {
                     <p style="font-size: 0.875rem; margin-bottom: 0.5rem">
                         "Step: 25"
                     </p>
-                    <SliderRoot class="slider-root" value=step25 step=25.0>
+                    <SliderRoot class="slider-root" values=step25 step=25.0>
                         <SliderTrack class="slider-track">
                             <SliderRange class="slider-range" />
                         </SliderTrack>
@@ -95,13 +112,13 @@ pub fn SliderExample() -> impl IntoView {
             <h2>"Volume Control Example"</h2>
             <div style="display: flex; align-items: center; gap: 1rem">
                 <span>"Vol"</span>
-                <SliderRoot class="slider-root" value=volume style="flex: 1">
+                <SliderRoot class="slider-root" values=volume style="flex: 1">
                     <SliderTrack class="slider-track">
                         <SliderRange class="slider-range" />
                     </SliderTrack>
                     <SliderThumb class="slider-thumb" />
                 </SliderRoot>
-                <span style="width: 3rem; text-align: right">{move || format!("{}%", volume.get() as i32)}</span>
+                <span style="width: 3rem; text-align: right">{move || format!("{}%", volume.get().first().map(|v| *v as i32).unwrap_or(0))}</span>
             </div>
         </div>
 
@@ -111,7 +128,7 @@ pub fn SliderExample() -> impl IntoView {
             <div style="display: flex; gap: 2rem; height: 150px">
                 <SliderRoot
                     class="slider-root"
-                    value=vertical1
+                    values=vertical1
                     orientation=SliderOrientation::Vertical
                 >
                     <SliderTrack class="slider-track">
@@ -121,7 +138,7 @@ pub fn SliderExample() -> impl IntoView {
                 </SliderRoot>
                 <SliderRoot
                     class="slider-root"
-                    value=vertical2
+                    values=vertical2
                     orientation=SliderOrientation::Vertical
                 >
                     <SliderTrack class="slider-track">
@@ -131,7 +148,7 @@ pub fn SliderExample() -> impl IntoView {
                 </SliderRoot>
                 <SliderRoot
                     class="slider-root"
-                    value=vertical3
+                    values=vertical3
                     orientation=SliderOrientation::Vertical
                 >
                     <SliderTrack class="slider-track">
@@ -148,7 +165,7 @@ pub fn SliderExample() -> impl IntoView {
         // Disabled Slider
         <div class="example-section">
             <h2>"Disabled Slider"</h2>
-            <SliderRoot class="slider-root" value=disabled disabled=true>
+            <SliderRoot class="slider-root" values=disabled disabled=true>
                 <SliderTrack class="slider-track">
                     <SliderRange class="slider-range" />
                 </SliderTrack>
@@ -159,7 +176,7 @@ pub fn SliderExample() -> impl IntoView {
         // Custom Min/Max
         <div class="example-section">
             <h2>"Custom Min/Max"</h2>
-            <SliderRoot class="slider-root" value=year min=2000.0 max=2030.0>
+            <SliderRoot class="slider-root" values=year min=2000.0 max=2030.0>
                 <SliderTrack class="slider-track">
                     <SliderRange class="slider-range" />
                 </SliderTrack>
@@ -167,7 +184,7 @@ pub fn SliderExample() -> impl IntoView {
             </SliderRoot>
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem">
                 <span>"2000"</span>
-                <span>{move || year.get() as i32}</span>
+                <span>{move || year.get().first().map(|v| *v as i32).unwrap_or(0)}</span>
                 <span>"2030"</span>
             </div>
         </div>

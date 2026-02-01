@@ -14,14 +14,16 @@ pub enum SliderOrientation {
 /// Context shared between Slider components
 #[derive(Clone, Copy)]
 struct SliderContext {
-    value: RwSignal<f64>,
+    values: RwSignal<Vec<f64>>,
     min: Signal<f64>,
     max: Signal<f64>,
     step: Signal<f64>,
+    min_steps_between_thumbs: Signal<u32>,
     orientation: Signal<SliderOrientation>,
     disabled: Signal<bool>,
     track_ref: NodeRef<Div>,
-    thumb_ref: RwSignal<Option<NodeRef<Div>>>,
+    thumb_count: RwSignal<usize>,
+    active_thumb: RwSignal<Option<usize>>,
 }
 
 impl SliderContext {
@@ -30,7 +32,7 @@ impl SliderContext {
     }
 
     fn expect() -> Self {
-        use_context().expect("SliderRange must be used within SliderRoot")
+        use_context().expect("Slider components must be used within SliderRoot")
     }
 
     /// Clamp and step-align a value
@@ -44,19 +46,58 @@ impl SliderContext {
         stepped.clamp(min, max)
     }
 
-    /// Update value with clamping
-    fn set_value(&self, val: f64) {
+    /// Update a specific thumb's value with clamping and collision prevention
+    fn set_thumb_value(&self, index: usize, val: f64) {
         let clamped = self.clamp_value(val);
-        self.value.set(clamped);
+        let step = self.step.get_untracked();
+        let min_gap = step * self.min_steps_between_thumbs.get_untracked() as f64;
+
+        self.values.update(|values| {
+            if index >= values.len() {
+                return;
+            }
+
+            let mut new_val = clamped;
+
+            // Prevent collision with previous thumb
+            if index > 0 {
+                let prev_val = values[index - 1];
+                if new_val < prev_val + min_gap {
+                    new_val = prev_val + min_gap;
+                }
+            }
+
+            // Prevent collision with next thumb
+            if index + 1 < values.len() {
+                let next_val = values[index + 1];
+                if new_val > next_val - min_gap {
+                    new_val = next_val - min_gap;
+                }
+            }
+
+            values[index] = self.clamp_value(new_val);
+        });
     }
 
-    /// Focus the thumb element for keyboard navigation
-    fn focus_thumb(&self) {
-        if let Some(thumb_ref) = self.thumb_ref.get() {
-            if let Some(el) = thumb_ref.get() {
-                _ = el.focus();
+    /// Find the closest thumb to a given value
+    fn find_closest_thumb(&self, target_value: f64) -> usize {
+        let values = self.values.get_untracked();
+        if values.is_empty() {
+            return 0;
+        }
+
+        let mut closest_index = 0;
+        let mut closest_distance = f64::MAX;
+
+        for (i, &val) in values.iter().enumerate() {
+            let distance = (val - target_value).abs();
+            if distance < closest_distance {
+                closest_distance = distance;
+                closest_index = i;
             }
         }
+
+        closest_index
     }
 
     fn orientation_attr(&self) -> Memo<&'static str> {
@@ -67,42 +108,46 @@ impl SliderContext {
         })
     }
 
-    fn on_pointer_down(self) -> impl Fn(PointerEvent) {
-        move |ev: web_sys::PointerEvent| {
-            {
-                if self.disabled.get() {
-                    return;
-                }
+    fn percent_from_pointer(&self, ev: &PointerEvent) -> f64 {
+        let Some(track_el) = self.track_ref.get() else {
+            return 0.0;
+        };
 
-                ev.prevent_default();
+        let rect = track_el.get_bounding_client_rect();
+        let orientation = self.orientation.get();
 
-                let Some(track_el) = self.track_ref.get() else {
-                    return;
-                };
-
-                let rect = track_el.get_bounding_client_rect();
-                let orientation = self.orientation.get();
-
-                let percent = match orientation {
-                    SliderOrientation::Horizontal => {
-                        let x = ev.client_x() as f64 - rect.left();
-                        (x / rect.width()).clamp(0.0, 1.0)
-                    }
-                    SliderOrientation::Vertical => {
-                        // For vertical, 0% is at bottom, 100% at top
-                        let y = ev.client_y() as f64 - rect.top();
-                        (1.0 - y / rect.height()).clamp(0.0, 1.0)
-                    }
-                };
-
-                let min = self.min.get();
-                let max = self.max.get();
-                let new_value = min + percent * (max - min);
-                self.set_value(new_value);
-
-                // Focus the thumb for keyboard navigation
-                self.focus_thumb();
+        match orientation {
+            SliderOrientation::Horizontal => {
+                let x = ev.client_x() as f64 - rect.left();
+                (x / rect.width()).clamp(0.0, 1.0)
             }
+            SliderOrientation::Vertical => {
+                let y = ev.client_y() as f64 - rect.top();
+                (1.0 - y / rect.height()).clamp(0.0, 1.0)
+            }
+        }
+    }
+
+    fn value_from_percent(&self, percent: f64) -> f64 {
+        let min = self.min.get();
+        let max = self.max.get();
+        min + percent * (max - min)
+    }
+
+    fn on_track_pointer_down(self) -> impl Fn(PointerEvent) {
+        move |ev: PointerEvent| {
+            if self.disabled.get() {
+                return;
+            }
+
+            ev.prevent_default();
+
+            let percent = self.percent_from_pointer(&ev);
+            let target_value = self.value_from_percent(percent);
+            let closest_thumb = self.find_closest_thumb(target_value);
+
+            self.set_thumb_value(closest_thumb, target_value);
+            self.active_thumb.set(Some(closest_thumb));
         }
     }
 }
@@ -110,8 +155,8 @@ impl SliderContext {
 /// Root container for the slider. Provides context and manages value state.
 #[component]
 pub fn SliderRoot(
-    /// Controlled value of the slider.
-    value: RwSignal<f64>,
+    /// Controlled values of the slider (one per thumb).
+    values: RwSignal<Vec<f64>>,
 
     /// Minimum value. Default is 0.
     #[prop(default = 0.0.into(), into)]
@@ -124,6 +169,10 @@ pub fn SliderRoot(
     /// Step increment. Default is 1.
     #[prop(default = 1.0.into(), into)]
     step: Signal<f64>,
+
+    /// Minimum number of steps between thumbs. Default is 0.
+    #[prop(default = 0.into(), into)]
+    min_steps_between_thumbs: Signal<u32>,
 
     /// Slider orientation. Default is `Horizontal`.
     #[prop(default = SliderOrientation::Horizontal.into(), into)]
@@ -149,17 +198,20 @@ pub fn SliderRoot(
     children: ChildrenFn,
 ) -> impl IntoView {
     let track_ref = NodeRef::<Div>::new();
-    let thumb_ref = RwSignal::new(None);
+    let thumb_count = RwSignal::new(0usize);
+    let active_thumb = RwSignal::new(None);
 
     let ctx = SliderContext {
-        value,
+        values,
         min,
         max,
         step,
+        min_steps_between_thumbs,
         orientation,
         disabled,
         track_ref,
-        thumb_ref,
+        thumb_count,
+        active_thumb,
     };
     ctx.provide();
 
@@ -201,14 +253,14 @@ pub fn SliderTrack(
             data-radix-slider-track=""
             data-orientation=ctx.orientation_attr()
             data-disabled=move || ctx.disabled.get().then_some("")
-            on:pointerdown=ctx.on_pointer_down()
+            on:pointerdown=ctx.on_track_pointer_down()
         >
             {children()}
         </div>
     }
 }
 
-/// Filled portion of the track showing the current value.
+/// Filled portion of the track showing the range between min value and max value (or between thumbs for range sliders).
 #[component]
 pub fn SliderRange(
     /// CSS class name(s) for styling.
@@ -225,28 +277,40 @@ pub fn SliderRange(
 ) -> impl IntoView {
     let ctx = SliderContext::expect();
 
-    // Calculate percentage filled
-    let percent = Signal::derive(move || {
-        let value = ctx.value.get();
+    // Calculate range position and size
+    let range_style = Signal::derive(move || {
+        let values = ctx.values.get();
         let min = ctx.min.get();
         let max = ctx.max.get();
 
-        if max <= min {
-            return 0.0;
+        if max <= min || values.is_empty() {
+            return (0.0, 0.0);
         }
 
-        ((value - min) / (max - min) * 100.0).clamp(0.0, 100.0)
+        let range = max - min;
+
+        if values.len() == 1 {
+            // Single thumb: range from 0 to value
+            let end_percent = ((values[0] - min) / range * 100.0).clamp(0.0, 100.0);
+            (0.0, end_percent)
+        } else {
+            // Multiple thumbs: range between first and last thumb
+            let start_percent = ((values[0] - min) / range * 100.0).clamp(0.0, 100.0);
+            let end_percent = ((values[values.len() - 1] - min) / range * 100.0).clamp(0.0, 100.0);
+            (start_percent, end_percent - start_percent)
+        }
     });
 
-    // Dynamic width/height based on orientation and value, merged with user style
+    // Dynamic positioning based on orientation
     let computed_style = move || {
-        let size_style = match ctx.orientation.get() {
-            SliderOrientation::Horizontal => format!("width: {}%", percent.get()),
-            SliderOrientation::Vertical => format!("height: {}%", percent.get()),
+        let (start, size) = range_style.get();
+        let pos_style = match ctx.orientation.get() {
+            SliderOrientation::Horizontal => format!("left: {}%; width: {}%", start, size),
+            SliderOrientation::Vertical => format!("bottom: {}%; height: {}%", start, size),
         };
         match &style {
-            Some(s) => format!("{}; {}", size_style, s),
-            None => size_style,
+            Some(s) => format!("{}; {}", pos_style, s),
+            None => pos_style,
         }
     };
 
@@ -279,23 +343,35 @@ pub fn SliderThumb(
 ) -> impl IntoView {
     let ctx = SliderContext::expect();
 
-    // Register thumb ref with context for focus management
-    ctx.thumb_ref.set(Some(node_ref));
+    // Get this thumb's index by incrementing the counter
+    let thumb_index = ctx.thumb_count.get_untracked();
+    ctx.thumb_count.update(|c| *c += 1);
 
     // Track drag state
     let is_dragging = RwSignal::new(false);
 
     // Calculate thumb position as percentage
     let percent = Signal::derive(move || {
-        let value = ctx.value.get();
+        let values = ctx.values.get();
         let min = ctx.min.get();
         let max = ctx.max.get();
 
-        if max <= min {
+        if max <= min || thumb_index >= values.len() {
             return 0.0;
         }
 
+        let value = values[thumb_index];
         ((value - min) / (max - min) * 100.0).clamp(0.0, 100.0)
+    });
+
+    // Get current value for ARIA
+    let current_value = Signal::derive(move || {
+        let values = ctx.values.get();
+        if thumb_index < values.len() {
+            values[thumb_index]
+        } else {
+            0.0
+        }
     });
 
     // Pointer event handlers for drag
@@ -314,6 +390,7 @@ pub fn SliderThumb(
         }
 
         is_dragging.set(true);
+        ctx.active_thumb.set(Some(thumb_index));
 
         // Focus the thumb for keyboard navigation
         if let Some(el) = node_ref.get() {
@@ -328,28 +405,9 @@ pub fn SliderThumb(
 
         ev.prevent_default();
 
-        let Some(track_el) = ctx.track_ref.get() else {
-            return;
-        };
-
-        let rect = track_el.get_bounding_client_rect();
-        let orientation = ctx.orientation.get();
-
-        let percent = match orientation {
-            SliderOrientation::Horizontal => {
-                let x = ev.client_x() as f64 - rect.left();
-                (x / rect.width()).clamp(0.0, 1.0)
-            }
-            SliderOrientation::Vertical => {
-                let y = ev.client_y() as f64 - rect.top();
-                (1.0 - y / rect.height()).clamp(0.0, 1.0)
-            }
-        };
-
-        let min = ctx.min.get();
-        let max = ctx.max.get();
-        let new_value = min + percent * (max - min);
-        ctx.set_value(new_value);
+        let percent = ctx.percent_from_pointer(&ev);
+        let new_value = ctx.value_from_percent(percent);
+        ctx.set_thumb_value(thumb_index, new_value);
     };
 
     let on_pointer_up = move |ev: web_sys::PointerEvent| {
@@ -360,6 +418,7 @@ pub fn SliderThumb(
         }
 
         is_dragging.set(false);
+        ctx.active_thumb.set(None);
     };
 
     // Keyboard event handler
@@ -371,7 +430,7 @@ pub fn SliderThumb(
         let step = ctx.step.get();
         let min = ctx.min.get();
         let max = ctx.max.get();
-        let current = ctx.value.get();
+        let current = current_value.get();
 
         // Shift+Arrow uses 10x step (matching Radix React behavior)
         let large_step = step * 10.0;
@@ -389,7 +448,7 @@ pub fn SliderThumb(
 
         if let Some(val) = new_value {
             ev.prevent_default();
-            ctx.set_value(val);
+            ctx.set_thumb_value(thumb_index, val);
         }
     };
 
@@ -421,7 +480,7 @@ pub fn SliderThumb(
             role="slider"
             aria-valuemin=move || ctx.min.get()
             aria-valuemax=move || ctx.max.get()
-            aria-valuenow=move || ctx.value.get()
+            aria-valuenow=current_value
             aria-orientation=ctx.orientation_attr()
             aria-disabled=move || ctx.disabled.get().then_some("true")
             style=computed_style
