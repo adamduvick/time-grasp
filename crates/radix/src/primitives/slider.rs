@@ -20,6 +20,18 @@ struct SliderContext {
     orientation: Signal<SliderOrientation>,
     disabled: Signal<bool>,
     track_ref: NodeRef<Div>,
+    thumb_ref: RwSignal<Option<NodeRef<Div>>>,
+}
+
+impl SliderContext {
+    /// Focus the thumb element for keyboard navigation
+    fn focus_thumb(&self) {
+        if let Some(thumb_ref) = self.thumb_ref.get() {
+            if let Some(el) = thumb_ref.get() {
+                _ = el.focus();
+            }
+        }
+    }
 }
 
 impl SliderContext {
@@ -75,6 +87,7 @@ pub fn SliderRoot(
     children: ChildrenFn,
 ) -> impl IntoView {
     let track_ref = NodeRef::<Div>::new();
+    let thumb_ref = RwSignal::new(None);
 
     let ctx = SliderContext {
         value,
@@ -84,6 +97,7 @@ pub fn SliderRoot(
         orientation,
         disabled,
         track_ref,
+        thumb_ref,
     };
 
     provide_context(ctx);
@@ -151,6 +165,9 @@ pub fn SliderTrack(
         let max = ctx.max.get();
         let new_value = min + percent * (max - min);
         ctx.set_value(new_value);
+
+        // Focus the thumb for keyboard navigation
+        ctx.focus_thumb();
     };
 
     let orientation_attr = move || match ctx.orientation.get() {
@@ -253,6 +270,9 @@ pub fn SliderThumb(
 ) -> impl IntoView {
     let ctx = use_context::<SliderContext>().expect("SliderThumb must be used within SliderRoot");
 
+    // Register thumb ref with context for focus management
+    ctx.thumb_ref.set(Some(node_ref));
+
     // Track drag state
     let is_dragging = RwSignal::new(false);
 
@@ -285,6 +305,11 @@ pub fn SliderThumb(
         }
 
         is_dragging.set(true);
+
+        // Focus the thumb for keyboard navigation
+        if let Some(el) = node_ref.get() {
+            _ = el.focus();
+        }
     };
 
     let on_pointer_move = move |ev: web_sys::PointerEvent| {

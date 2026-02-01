@@ -32,6 +32,10 @@ pub fn SwitchRoot(
     let on_click = move |_| {
         if !disabled.get() {
             checked.update(|c| *c = !*c);
+            // Ensure focus is set for keyboard navigation
+            if let Some(el) = node_ref.get() {
+                _ = el.focus();
+            }
         }
     };
 
