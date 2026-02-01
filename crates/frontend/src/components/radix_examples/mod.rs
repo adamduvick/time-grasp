@@ -1,14 +1,62 @@
 use leptos::prelude::*;
+use leptos_router::components::{A, Outlet};
 use radix::{
     AspectRatio, Orientation, ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb,
     ScrollAreaViewport, ScrollType,
 };
 
+/// Layout component for the /radix route with sidebar navigation
 #[component]
-pub fn Radix() -> impl IntoView {
+pub fn RadixLayout() -> impl IntoView {
     view! {
-        <ScrollAreaExample />
-        <AspectRatioExample />
+        <style inner_html="
+            [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
+            [data-radix-scroll-area-scrollbar] { width: 100%; height: 100%; }
+            [data-radix-scroll-area-thumb] { background: rgba(0,0,0,0.4); border-radius: 9999px; cursor: pointer; }
+        " />
+
+        <div style:display="flex" style:height="calc(100vh - 60px)" style:gap="16px">
+            // Left sidebar (20%)
+            <div
+                style:width="20%"
+                style:min-width="150px"
+                style:border="1px solid #ccc"
+                style:border-radius="6px"
+            >
+                <ScrollAreaRoot scroll_type=ScrollType::Auto>
+                    <ScrollAreaViewport>
+                        <nav style:padding="16px">
+                            <h3 style:margin-top="0">"Primitives"</h3>
+                            <ul style:list-style="none" style:padding="0" style:margin="0">
+                                <li style:margin-bottom="8px">
+                                    <A href="/radix/scroll-area">"Scroll Area"</A>
+                                </li>
+                                <li style:margin-bottom="8px">
+                                    <A href="/radix/aspect-ratio">"Aspect Ratio"</A>
+                                </li>
+                            </ul>
+                        </nav>
+                    </ScrollAreaViewport>
+                    <StyledVerticalScrollbar />
+                </ScrollAreaRoot>
+            </div>
+
+            // Right content area (80%)
+            <div
+                style:width="80%"
+                style:border="1px solid #ccc"
+                style:border-radius="6px"
+            >
+                <ScrollAreaRoot scroll_type=ScrollType::Auto>
+                    <ScrollAreaViewport>
+                        <div style:padding="16px">
+                            <Outlet />
+                        </div>
+                    </ScrollAreaViewport>
+                    <StyledVerticalScrollbar />
+                </ScrollAreaRoot>
+            </div>
+        </div>
     }
 }
 
@@ -101,12 +149,6 @@ fn StyledHorizontalScrollbar(#[prop(default = "0".to_string())] right: String) -
 #[component]
 pub fn ScrollAreaExample() -> impl IntoView {
     view! {
-        <style inner_html="
-            [data-radix-scroll-area-viewport]::-webkit-scrollbar { display: none; }
-            [data-radix-scroll-area-scrollbar] { width: 100%; height: 100%; }
-            [data-radix-scroll-area-thumb] { background: rgba(0,0,0,0.4); border-radius: 9999px; cursor: pointer; }
-        " />
-
         <h2>"Scroll Area"</h2>
         <h3>"Vertical Scroll (Always Visible)"</h3>
         <div
