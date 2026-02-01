@@ -1,4 +1,5 @@
 mod aspect_ratio;
+mod avatar;
 mod scroll_area;
 mod separator;
 mod shared;
@@ -6,12 +7,13 @@ mod slider;
 mod switch;
 
 use leptos::prelude::*;
-use leptos_router::components::{A, Outlet, ParentRoute, Route};
 use leptos_router::MatchNestedRoutes;
+use leptos_router::components::{A, Outlet, ParentRoute, Route};
 use leptos_router_macro::path;
 use radix::{ScrollAreaRoot, ScrollAreaViewport, ScrollType};
 
 use aspect_ratio::AspectRatioExample;
+use avatar::AvatarExample;
 use scroll_area::ScrollAreaExample;
 use separator::SeparatorExample;
 use shared::StyledVerticalScrollbar;
@@ -25,6 +27,7 @@ pub fn RadixRoutes() -> impl MatchNestedRoutes + Clone {
         <ParentRoute path=path!("radix") view=RadixLayout>
             <Route path=path!("/") view=|| "Select a primitive." />
             <Route path=path!("/aspect-ratio") view=AspectRatioExample />
+            <Route path=path!("/avatar") view=AvatarExample />
             <Route path=path!("/scroll-area") view=ScrollAreaExample />
             <Route path=path!("/separator") view=SeparatorExample />
             <Route path=path!("/slider") view=SliderExample />
@@ -58,19 +61,22 @@ fn RadixLayout() -> impl IntoView {
                             <h3 style:margin-top="0">"Primitives"</h3>
                             <ul style:list-style="none" style:padding="0" style:margin="0">
                                 <li style:margin-bottom="8px">
-                                    <A href="/radix/aspect-ratio">"Aspect Ratio"</A>
+                                    <A href="aspect-ratio">"Aspect Ratio"</A>
                                 </li>
                                 <li style:margin-bottom="8px">
-                                    <A href="/radix/scroll-area">"Scroll Area"</A>
+                                    <A href="avatar">"Avatar"</A>
                                 </li>
                                 <li style:margin-bottom="8px">
-                                    <A href="/radix/separator">"Separator"</A>
+                                    <A href="scroll-area">"Scroll Area"</A>
                                 </li>
                                 <li style:margin-bottom="8px">
-                                    <A href="/radix/slider">"Slider"</A>
+                                    <A href="separator">"Separator"</A>
                                 </li>
                                 <li style:margin-bottom="8px">
-                                    <A href="/radix/switch">"Switch"</A>
+                                    <A href="slider">"Slider"</A>
+                                </li>
+                                <li style:margin-bottom="8px">
+                                    <A href="switch">"Switch"</A>
                                 </li>
                             </ul>
                         </nav>
