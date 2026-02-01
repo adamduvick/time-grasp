@@ -1463,3 +1463,148 @@ button {
   transform: rotate(45deg);
   border-top-left-radius: 2px;
 }
+
+/* === Form === */
+/* Radix provides: Validation, error messages, ARIA associations */
+/* User must style: form layout, inputs, error styling */
+
+.form-root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.form-message {
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+.form-input {
+  padding: 0.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: inherit;
+}
+
+.form-input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.form-input[data-invalid] {
+  border-color: #ef4444;
+}
+
+.form-input[data-valid] {
+  border-color: #22c55e;
+}
+
+/* === Label === */
+/* Radix provides: Click-to-focus, proper association */
+/* User must style: label appearance */
+
+.label-root {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* === OTPField === */
+/* Radix provides: Focus management, paste handling, keyboard nav */
+/* User must style: slots, container, focus states */
+
+.otp-root {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.otp-input {
+  width: 40px;
+  height: 48px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 500;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.otp-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.otp-separator {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+/* === PasswordToggleField === */
+/* Radix provides: Visibility toggle, focus return, auto-reset */
+/* User must style: input, toggle button, icons */
+
+.password-root {
+  display: flex;
+  position: relative;
+}
+
+.password-input {
+  flex: 1;
+  padding: 0.5rem;
+  padding-right: 2.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: inherit;
+}
+
+.password-input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: var(--color-text-muted);
+}
+
+.password-toggle:hover {
+  color: var(--color-text);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  border-radius: var(--radius);
+}
