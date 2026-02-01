@@ -6,3 +6,4 @@ pub use primitives::{
     ScrollAreaViewport, ScrollType,
 };
 pub use primitives::{Separator, SeparatorOrientation};
+pub use primitives::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};

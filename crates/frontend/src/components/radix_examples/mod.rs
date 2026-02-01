@@ -2,6 +2,7 @@ mod aspect_ratio;
 mod scroll_area;
 mod separator;
 mod shared;
+mod slider;
 
 use leptos::prelude::*;
 use leptos_router::components::{A, Outlet, ParentRoute, Route};
@@ -13,6 +14,7 @@ use aspect_ratio::AspectRatioExample;
 use scroll_area::ScrollAreaExample;
 use separator::SeparatorExample;
 use shared::StyledVerticalScrollbar;
+use slider::SliderExample;
 
 /// Radix examples routes - handles all subrouting for /radix/*
 #[component(transparent)]
@@ -23,6 +25,7 @@ pub fn RadixRoutes() -> impl MatchNestedRoutes + Clone {
             <Route path=path!("/aspect-ratio") view=AspectRatioExample />
             <Route path=path!("/scroll-area") view=ScrollAreaExample />
             <Route path=path!("/separator") view=SeparatorExample />
+            <Route path=path!("/slider") view=SliderExample />
         </ParentRoute>
     }
     .into_inner()
@@ -59,6 +62,9 @@ fn RadixLayout() -> impl IntoView {
                                 </li>
                                 <li style:margin-bottom="8px">
                                     <A href="/radix/separator">"Separator"</A>
+                                </li>
+                                <li style:margin-bottom="8px">
+                                    <A href="/radix/slider">"Slider"</A>
                                 </li>
                             </ul>
                         </nav>
