@@ -5,3 +5,4 @@ pub use primitives::{
     Orientation, ScrollAreaCorner, ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb,
     ScrollAreaViewport, ScrollType,
 };
+pub use primitives::{Separator, SeparatorOrientation};
