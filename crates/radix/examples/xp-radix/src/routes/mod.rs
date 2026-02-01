@@ -71,6 +71,8 @@ pub struct Primitive {
     pub path: &'static str,
     pub name: &'static str,
     pub description: &'static str,
+    #[serde(default)]
+    pub implemented: bool,
 }
 
 const PRIMITIVES_JSON: &str = include_str!("../primitives.json");

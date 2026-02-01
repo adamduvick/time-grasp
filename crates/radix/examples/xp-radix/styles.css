@@ -75,6 +75,14 @@ button {
   color: white;
 }
 
+.sidebar .nav-disabled {
+  display: block;
+  padding: 0.5rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .content {
   flex: 1;
   padding: 2rem;
@@ -391,6 +399,15 @@ button {
 
 .primitive-card:hover {
   border-color: var(--color-accent);
+}
+
+.primitive-card-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primitive-card-disabled:hover {
+  border-color: var(--color-border);
 }
 
 .primitive-card h2 {

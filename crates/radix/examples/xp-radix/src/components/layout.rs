@@ -5,7 +5,13 @@ use leptos_router::components::{A, Outlet};
 pub fn Layout() -> impl IntoView {
     let primitives = crate::routes::primitives()
         .into_iter()
-        .map(|p| view! { <li><A href=p.path attr:data-discover="true">{p.name}</A></li> })
+        .map(|p| {
+            if p.implemented {
+                view! { <li><A href=p.path attr:data-discover="true">{p.name}</A></li> }.into_any()
+            } else {
+                view! { <li><span class="nav-disabled">{p.name}</span></li> }.into_any()
+            }
+        })
         .collect_view();
 
     view! {

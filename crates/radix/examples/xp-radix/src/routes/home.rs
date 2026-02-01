@@ -6,12 +6,20 @@ pub fn Home() -> impl IntoView {
     let primitives = crate::routes::primitives()
         .into_iter()
         .map(|p| {
-            view! {
-                <A href=p.path attr:class="primitive-card">
-                    <h2>{p.name}</h2>
-                    <p>{p.description}</p>
-                </A>
-
+            if p.implemented {
+                view! {
+                    <A href=p.path attr:class="primitive-card">
+                        <h2>{p.name}</h2>
+                        <p>{p.description}</p>
+                    </A>
+                }.into_any()
+            } else {
+                view! {
+                    <div class="primitive-card primitive-card-disabled">
+                        <h2>{p.name}</h2>
+                        <p>{p.description}</p>
+                    </div>
+                }.into_any()
             }
         })
         .collect_view();
