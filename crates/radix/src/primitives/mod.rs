@@ -2,6 +2,7 @@ pub mod aspect_ratio;
 pub mod scroll_area;
 pub mod separator;
 pub mod slider;
+pub mod switch;
 
 pub use aspect_ratio::AspectRatio;
 pub use scroll_area::{
@@ -10,3 +11,4 @@ pub use scroll_area::{
 };
 pub use separator::{Separator, SeparatorOrientation};
 pub use slider::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
+pub use switch::{SwitchRoot, SwitchThumb};

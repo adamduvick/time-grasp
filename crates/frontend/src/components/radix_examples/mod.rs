@@ -3,6 +3,7 @@ mod scroll_area;
 mod separator;
 mod shared;
 mod slider;
+mod switch;
 
 use leptos::prelude::*;
 use leptos_router::components::{A, Outlet, ParentRoute, Route};
@@ -15,6 +16,7 @@ use scroll_area::ScrollAreaExample;
 use separator::SeparatorExample;
 use shared::StyledVerticalScrollbar;
 use slider::SliderExample;
+use switch::SwitchExample;
 
 /// Radix examples routes - handles all subrouting for /radix/*
 #[component(transparent)]
@@ -26,6 +28,7 @@ pub fn RadixRoutes() -> impl MatchNestedRoutes + Clone {
             <Route path=path!("/scroll-area") view=ScrollAreaExample />
             <Route path=path!("/separator") view=SeparatorExample />
             <Route path=path!("/slider") view=SliderExample />
+            <Route path=path!("/switch") view=SwitchExample />
         </ParentRoute>
     }
     .into_inner()
@@ -65,6 +68,9 @@ fn RadixLayout() -> impl IntoView {
                                 </li>
                                 <li style:margin-bottom="8px">
                                     <A href="/radix/slider">"Slider"</A>
+                                </li>
+                                <li style:margin-bottom="8px">
+                                    <A href="/radix/switch">"Switch"</A>
                                 </li>
                             </ul>
                         </nav>
