@@ -32,7 +32,7 @@ pub fn SliderExample() -> impl IntoView {
                 <SliderThumb class="slider-thumb" />
             </SliderRoot>
             <p style="margin-top: 1rem; font-size: 0.875rem">
-                "Try: Arrow keys, PageUp/PageDown, Home/End"
+                "Try: Arrow keys (\u{00B1}1), Shift+Arrow (\u{00B1}10), Home/End"
             </p>
         </div>
 
@@ -113,34 +113,31 @@ pub fn SliderExample() -> impl IntoView {
                     class="slider-root"
                     value=vertical1
                     orientation=SliderOrientation::Vertical
-                    style="width: 20px; height: 100%; flex-direction: column"
                 >
-                    <SliderTrack class="slider-track" style="width: 4px; height: 100%; flex-grow: 1">
-                        <SliderRange class="slider-range" style="width: 100%; position: absolute; bottom: 0" />
+                    <SliderTrack class="slider-track">
+                        <SliderRange class="slider-range" />
                     </SliderTrack>
-                    <SliderThumb class="slider-thumb" style="transform: translateY(50%); left: 50%; margin-left: -8px; top: auto; margin-top: 0" />
+                    <SliderThumb class="slider-thumb" />
                 </SliderRoot>
                 <SliderRoot
                     class="slider-root"
                     value=vertical2
                     orientation=SliderOrientation::Vertical
-                    style="width: 20px; height: 100%; flex-direction: column"
                 >
-                    <SliderTrack class="slider-track" style="width: 4px; height: 100%; flex-grow: 1">
-                        <SliderRange class="slider-range" style="width: 100%; position: absolute; bottom: 0" />
+                    <SliderTrack class="slider-track">
+                        <SliderRange class="slider-range" />
                     </SliderTrack>
-                    <SliderThumb class="slider-thumb" style="transform: translateY(50%); left: 50%; margin-left: -8px; top: auto; margin-top: 0" />
+                    <SliderThumb class="slider-thumb" />
                 </SliderRoot>
                 <SliderRoot
                     class="slider-root"
                     value=vertical3
                     orientation=SliderOrientation::Vertical
-                    style="width: 20px; height: 100%; flex-direction: column"
                 >
-                    <SliderTrack class="slider-track" style="width: 4px; height: 100%; flex-grow: 1">
-                        <SliderRange class="slider-range" style="width: 100%; position: absolute; bottom: 0" />
+                    <SliderTrack class="slider-track">
+                        <SliderRange class="slider-range" />
                     </SliderTrack>
-                    <SliderThumb class="slider-thumb" style="transform: translateY(50%); left: 50%; margin-left: -8px; top: auto; margin-top: 0" />
+                    <SliderThumb class="slider-thumb" />
                 </SliderRoot>
             </div>
             <p style="margin-top: 1rem; font-size: 0.875rem">

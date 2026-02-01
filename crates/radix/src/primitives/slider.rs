@@ -373,11 +373,13 @@ pub fn SliderThumb(
         let max = ctx.max.get();
         let current = ctx.value.get();
 
+        // Shift+Arrow uses 10x step (matching Radix React behavior)
         let large_step = step * 10.0;
+        let effective_step = if ev.shift_key() { large_step } else { step };
 
         let new_value = match ev.key().as_str() {
-            "ArrowRight" | "ArrowUp" => Some(current + step),
-            "ArrowLeft" | "ArrowDown" => Some(current - step),
+            "ArrowRight" | "ArrowUp" => Some(current + effective_step),
+            "ArrowLeft" | "ArrowDown" => Some(current - effective_step),
             "PageUp" => Some(current + large_step),
             "PageDown" => Some(current - large_step),
             "Home" => Some(min),

@@ -679,6 +679,33 @@ button {
   cursor: not-allowed;
 }
 
+/* Vertical orientation */
+.slider-root[data-orientation="vertical"] {
+  flex-direction: column;
+  width: 20px;
+  height: 100%;
+}
+
+.slider-track[data-orientation="vertical"] {
+  width: 4px;
+  height: 100%;
+}
+
+.slider-range[data-orientation="vertical"] {
+  width: 100%;
+  height: unset;
+  bottom: 0;
+  top: unset;
+}
+
+.slider-thumb[data-orientation="vertical"] {
+  transform: translateY(50%);
+  left: 50%;
+  margin-left: -8px;
+  top: unset;
+  margin-top: 0;
+}
+
 /* === Switch === */
 /* Radix provides: On/off state, role="switch", aria-checked */
 /* User must style: track and thumb for both states */
