@@ -35,6 +35,7 @@ web-sys = { workspace = true }
 leptos_router = "0.8.11"
 leptos_router_macro = "0.8.6"
 itertools = "0.14.0"
+leptos-use = "0.18.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
