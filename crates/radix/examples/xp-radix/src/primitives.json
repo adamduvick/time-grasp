@@ -111,7 +111,7 @@
     "path": "/radio-group",
     "name": "RadioGroup",
     "description": "Single selection from multiple options",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/scroll-area",

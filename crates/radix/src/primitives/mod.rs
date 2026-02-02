@@ -4,6 +4,7 @@ pub mod checkbox;
 pub mod collapsible;
 pub mod label;
 pub mod progress;
+pub mod radio_group;
 pub mod scroll_area;
 pub mod separator;
 pub mod slider;
@@ -17,6 +18,9 @@ pub use checkbox::{CheckboxIndicator, CheckboxRoot, CheckedState};
 pub use collapsible::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
 pub use label::Label;
 pub use progress::{ProgressIndicator, ProgressRoot};
+pub use radio_group::{
+    RadioGroupIndicator, RadioGroupItem, RadioGroupOrientation, RadioGroupRoot,
+};
 pub use scroll_area::{
     Orientation, ScrollAreaCorner, ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb,
     ScrollAreaViewport, ScrollType,
