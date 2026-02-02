@@ -4,6 +4,10 @@ pub use primitives::{
     AccordionContent, AccordionHeader, AccordionItem, AccordionOrientation, AccordionRoot,
     AccordionTrigger, AccordionType,
 };
+pub use primitives::{
+    AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+    AlertDialogOverlay, AlertDialogPortal, AlertDialogRoot, AlertDialogTitle, AlertDialogTrigger,
+};
 pub use primitives::AspectRatio;
 pub use primitives::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use primitives::{CheckboxIndicator, CheckboxRoot, CheckedState};

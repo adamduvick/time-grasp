@@ -1,4 +1,5 @@
 pub mod accordion;
+pub mod alert_dialog;
 pub mod aspect_ratio;
 pub mod avatar;
 pub mod checkbox;
@@ -20,6 +21,10 @@ pub mod visually_hidden;
 pub use accordion::{
     AccordionContent, AccordionHeader, AccordionItem, AccordionOrientation, AccordionRoot,
     AccordionTrigger, AccordionType,
+};
+pub use alert_dialog::{
+    AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+    AlertDialogOverlay, AlertDialogPortal, AlertDialogRoot, AlertDialogTitle, AlertDialogTrigger,
 };
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};

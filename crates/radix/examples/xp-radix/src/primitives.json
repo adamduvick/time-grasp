@@ -9,7 +9,7 @@
     "path": "/alert-dialog",
     "name": "AlertDialog",
     "description": "Modal for confirmations requiring explicit action",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/aspect-ratio",
