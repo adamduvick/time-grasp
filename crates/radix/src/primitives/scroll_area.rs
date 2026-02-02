@@ -1,19 +1,19 @@
 use leptos::html::Div;
 use leptos::prelude::*;
-use leptos_use::{UseScrollOptions, UseScrollReturn, use_element_hover, use_scroll_with_options};
+use leptos_use::{use_element_hover, use_scroll_with_options, UseScrollOptions};
 use wasm_bindgen::JsCast;
 
 /// Scroll visibility behavior
 #[derive(Clone, Copy, PartialEq, Default, Debug)]
 pub enum ScrollType {
-    /// Show when hovering AND content overflows
+    /// Show when content overflows (default)
+    #[default]
     Auto,
     /// Always show scrollbar
     Always,
     /// Show when scrolling
     Scroll,
     /// Show when hovering over scroll area
-    #[default]
     Hover,
 }
 
@@ -30,7 +30,7 @@ pub enum Orientation {
 struct ScrollAreaContext {
     scroll_type: Signal<ScrollType>,
     viewport_ref: NodeRef<Div>,
-    // Scroll state from use_scroll
+    // Scroll state
     scroll_x: Signal<f64>,
     scroll_y: Signal<f64>,
     is_scrolling: Signal<bool>,
@@ -52,8 +52,8 @@ struct ScrollbarContext {
 /// Root container for the scroll area. Provides context and manages visibility state.
 #[component]
 pub fn ScrollAreaRoot(
-    /// Scrollbar visibility behavior. Default is `Hover`.
-    #[prop(default = ScrollType::Hover.into(), into)]
+    /// Scrollbar visibility behavior. Default is `Auto`.
+    #[prop(default = ScrollType::Auto.into(), into)]
     scroll_type: Signal<ScrollType>,
 
     /// Delay in milliseconds before hiding scrollbar after scrolling stops. Default is 600ms.
@@ -75,22 +75,25 @@ pub fn ScrollAreaRoot(
     /// The content to render within the scroll area.
     children: ChildrenFn,
 ) -> impl IntoView {
-    // Use leptos-use's use_scroll for scroll state tracking
-    let UseScrollReturn {
-        x: scroll_x,
-        y: scroll_y,
-        is_scrolling,
-        ..
-    } = use_scroll_with_options(
-        node_ref,
+    // Create a separate ref for the viewport (the actual scrollable element)
+    let viewport_ref = NodeRef::<Div>::new();
+
+    // Use leptos-use's use_scroll for scroll position tracking
+    // The idle option controls how long after scrolling stops before is_scrolling becomes false
+    let scroll_return = use_scroll_with_options(
+        viewport_ref,
         UseScrollOptions::default().idle(scroll_hide_delay.get_untracked() as f64),
     );
+    let scroll_x = scroll_return.x;
+    let scroll_y = scroll_return.y;
+    let is_scrolling = scroll_return.is_scrolling;
 
+    // Hover detection on the root element
     let is_hovering = use_element_hover(node_ref);
 
     let ctx = ScrollAreaContext {
         scroll_type,
-        viewport_ref: node_ref,
+        viewport_ref,
         scroll_x,
         scroll_y,
         is_scrolling,
@@ -223,7 +226,7 @@ pub fn ScrollAreaScrollbar(
 
     /// Reference to the scrollbar element.
     #[prop(optional)]
-    node_ref: NodeRef<Div>,
+    _node_ref: NodeRef<Div>,
 
     /// The scrollbar thumb.
     children: ChildrenFn,
@@ -231,50 +234,109 @@ pub fn ScrollAreaScrollbar(
     let ctx = use_context::<ScrollAreaContext>()
         .expect("ScrollAreaScrollbar must be used within ScrollAreaRoot");
 
+    // Create our own ref for track click handling
+    let scrollbar_ref = NodeRef::<Div>::new();
+
     provide_context(ScrollbarContext { orientation });
-
-    // Determine if scrollbar has overflow content
-    let has_overflow = Signal::derive(move || {
-        let ori = orientation.get();
-        match ori {
-            Orientation::Vertical => ctx.scroll_height.get() > ctx.client_height.get(),
-            Orientation::Horizontal => ctx.scroll_width.get() > ctx.client_width.get(),
-        }
-    });
-
-    // Handle visibility based on scroll_type
-    let is_visible = Signal::derive(move || {
-        if force_mount.get() {
-            return true;
-        }
-
-        match ctx.scroll_type.get() {
-            ScrollType::Always => true,
-            ScrollType::Auto => ctx.is_hovering.get() && has_overflow.get(),
-            ScrollType::Scroll => ctx.is_scrolling.get(),
-            ScrollType::Hover => ctx.is_hovering.get(),
-        }
-    });
 
     let orientation_attr = move || match orientation.get() {
         Orientation::Vertical => "vertical",
         Orientation::Horizontal => "horizontal",
     };
 
+    // Compute visibility directly in closures to avoid signal timing issues
+    let compute_visible = move || {
+        if force_mount.get() {
+            return true;
+        }
+
+        let has_overflow = match orientation.get() {
+            Orientation::Vertical => ctx.scroll_height.get() > ctx.client_height.get(),
+            Orientation::Horizontal => ctx.scroll_width.get() > ctx.client_width.get(),
+        };
+
+        match ctx.scroll_type.get() {
+            ScrollType::Always => true,
+            ScrollType::Auto => has_overflow,
+            ScrollType::Scroll => ctx.is_scrolling.get(),
+            ScrollType::Hover => ctx.is_hovering.get(),
+        }
+    };
+
     let state_attr = move || {
-        if is_visible.get() {
+        if compute_visible() {
             "visible"
         } else {
             "hidden"
         }
     };
 
+    // Handle click on track to jump to position
+    let on_track_click = move |ev: web_sys::PointerEvent| {
+        // Don't handle if clicking on the thumb (it will handle its own events)
+        if let Some(target) = ev.target() {
+            if let Ok(el) = target.dyn_into::<web_sys::Element>() {
+                if el.get_attribute("data-radix-scroll-area-thumb").is_some() {
+                    return;
+                }
+            }
+        }
+
+        let Some(scrollbar_el) = scrollbar_ref.get() else {
+            return;
+        };
+        let Some(viewport) = ctx.viewport_ref.get() else {
+            return;
+        };
+
+        let rect = scrollbar_el.get_bounding_client_rect();
+        let ori = orientation.get();
+
+        // Calculate click position as percentage of track
+        let click_percent = match ori {
+            Orientation::Vertical => {
+                let y = ev.client_y() as f64 - rect.top();
+                (y / rect.height()).clamp(0.0, 1.0)
+            }
+            Orientation::Horizontal => {
+                let x = ev.client_x() as f64 - rect.left();
+                (x / rect.width()).clamp(0.0, 1.0)
+            }
+        };
+
+        // Convert to scroll position
+        let (client, scroll) = match ori {
+            Orientation::Vertical => (ctx.client_height.get(), ctx.scroll_height.get()),
+            Orientation::Horizontal => (ctx.client_width.get(), ctx.scroll_width.get()),
+        };
+
+        let max_scroll = scroll - client;
+        if max_scroll <= 0.0 {
+            return;
+        }
+
+        // Center the thumb at the click position
+        let thumb_ratio = client / scroll;
+        let adjusted_percent = (click_percent - thumb_ratio / 2.0).clamp(0.0, 1.0 - thumb_ratio);
+        let new_scroll = adjusted_percent / (1.0 - thumb_ratio) * max_scroll;
+
+        match ori {
+            Orientation::Vertical => viewport.set_scroll_top(new_scroll as i32),
+            Orientation::Horizontal => viewport.set_scroll_left(new_scroll as i32),
+        }
+    };
+
     let style_stored = StoredValue::new(style);
     let computed_style = move || {
-        let display = if is_visible.get() { "block" } else { "none" };
+        let display = if compute_visible() { "flex" } else { "none" };
+        // Position scrollbar based on orientation
+        let position_styles = match orientation.get() {
+            Orientation::Vertical => "top: 0; right: 0; bottom: 0",
+            Orientation::Horizontal => "left: 0; right: 0; bottom: 0",
+        };
         let base = format!(
-            "position: absolute; display: {}; user-select: none; touch-action: none",
-            display
+            "position: absolute; display: {}; {}; user-select: none; touch-action: none",
+            display, position_styles
         );
         match style_stored.get_value() {
             Some(s) => format!("{}; {}", base, s),
@@ -284,12 +346,13 @@ pub fn ScrollAreaScrollbar(
 
     view! {
         <div
-            node_ref=node_ref
+            node_ref=scrollbar_ref
             class=class
             style=computed_style
             data-radix-scroll-area-scrollbar=""
             data-orientation=orientation_attr
             data-state=state_attr
+            on:pointerdown=on_track_click
         >
             {children()}
         </div>
@@ -367,6 +430,7 @@ pub fn ScrollAreaThumb(
     // Pointer event handlers for drag
     let on_pointer_down = move |ev: web_sys::PointerEvent| {
         ev.prevent_default();
+        ev.stop_propagation(); // Prevent track click handler from firing
 
         if let Some(target) = ev.target()
             && let Ok(el) = target.dyn_into::<web_sys::Element>()
@@ -453,24 +517,22 @@ pub fn ScrollAreaThumb(
 
     let style_stored = StoredValue::new(style);
     let computed_style = move || {
-        let (width, height, top, left) = match orientation.get() {
-            Orientation::Vertical => (
-                "100%".to_string(),
-                format!("{}%", thumb_size.get()),
-                format!("{}%", thumb_position.get()),
-                "0".to_string(),
+        let size = thumb_size.get();
+        let pos = thumb_position.get();
+
+        // Use absolute positioning with insets to account for scrollbar padding (2px)
+        // left/right: 2px centers thumb horizontally within the padding
+        // top/bottom positioning uses percentages for the scroll position
+        let base = match orientation.get() {
+            Orientation::Vertical => format!(
+                "position: absolute; left: 2px; right: 2px; top: {}%; height: {}%",
+                pos, size
             ),
-            Orientation::Horizontal => (
-                format!("{}%", thumb_size.get()),
-                "100%".to_string(),
-                "0".to_string(),
-                format!("{}%", thumb_position.get()),
+            Orientation::Horizontal => format!(
+                "position: absolute; top: 2px; bottom: 2px; left: {}%; width: {}%",
+                pos, size
             ),
         };
-        let base = format!(
-            "position: absolute; width: {}; height: {}; top: {}; left: {}",
-            width, height, top, left
-        );
         match style_stored.get_value() {
             Some(s) => format!("{}; {}", base, s),
             None => base,

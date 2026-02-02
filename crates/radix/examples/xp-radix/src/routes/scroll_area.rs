@@ -16,7 +16,7 @@ pub fn ScrollAreaExample() -> impl IntoView {
         // Vertical Scroll
         <div class="example-section">
             <h2>"Vertical Scroll"</h2>
-            <ScrollAreaRoot class="scrollarea-root" style="height: 200px">
+            <ScrollAreaRoot class="scrollarea-root" scroll_type=ScrollType::Hover style="height: 200px">
                 <ScrollAreaViewport class="scrollarea-viewport">
                     <div style="padding: 1rem">
                         <h3 style="margin-bottom: 0.5rem">"Tags"</h3>
@@ -41,7 +41,7 @@ pub fn ScrollAreaExample() -> impl IntoView {
         // Horizontal Scroll
         <div class="example-section">
             <h2>"Horizontal Scroll"</h2>
-            <ScrollAreaRoot class="scrollarea-root" style="width: 100%">
+            <ScrollAreaRoot class="scrollarea-root" scroll_type=ScrollType::Hover style="width: 100%">
                 <ScrollAreaViewport class="scrollarea-viewport">
                     <div style="display: flex; gap: 1rem; padding: 1rem; width: max-content">
                         {(1..=20).map(|i| {
@@ -65,7 +65,7 @@ pub fn ScrollAreaExample() -> impl IntoView {
         // Both Scrollbars
         <div class="example-section">
             <h2>"Both Scrollbars"</h2>
-            <ScrollAreaRoot class="scrollarea-root" style="height: 200px; width: 300px">
+            <ScrollAreaRoot class="scrollarea-root" scroll_type=ScrollType::Hover style="height: 200px; width: 300px">
                 <ScrollAreaViewport class="scrollarea-viewport">
                     <div style="width: 600px; padding: 1rem">
                         <h3>"Wide Content"</h3>
@@ -98,10 +98,10 @@ pub fn ScrollAreaExample() -> impl IntoView {
         <div class="example-section">
             <h2>"Scrollbar Types"</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
-                // type="auto"
+                // type="auto" (default)
                 <div>
                     <p style="font-size: 0.875rem; margin-bottom: 0.5rem">
-                        "type=\"auto\" (shows when hovering and overflows)"
+                        "type=\"auto\" (default)"
                     </p>
                     <ScrollAreaRoot
                         class="scrollarea-root"
@@ -158,10 +158,10 @@ pub fn ScrollAreaExample() -> impl IntoView {
                     </ScrollAreaRoot>
                 </div>
 
-                // type="hover" (default)
+                // type="hover"
                 <div>
                     <p style="font-size: 0.875rem; margin-bottom: 0.5rem">
-                        "type=\"hover\" (default)"
+                        "type=\"hover\""
                     </p>
                     <ScrollAreaRoot
                         class="scrollarea-root"
@@ -225,7 +225,7 @@ pub fn ScrollAreaExample() -> impl IntoView {
             <h2>"Scrollbar Types Explained"</h2>
             <ul style="font-size: 0.875rem; line-height: 1.8">
                 <li>
-                    <code>"type=\"auto\""</code>" - Scrollbar visible when hovering and content overflows"
+                    <code>"type=\"auto\""</code>" - Scrollbar visible when content overflows"
                 </li>
                 <li>
                     <code>"type=\"always\""</code>" - Scrollbar always visible"
