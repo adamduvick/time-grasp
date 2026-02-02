@@ -27,7 +27,7 @@
     "path": "/checkbox",
     "name": "Checkbox",
     "description": "Tri-state checkbox with indeterminate support",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/collapsible",
