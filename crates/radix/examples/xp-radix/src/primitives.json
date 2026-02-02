@@ -105,7 +105,7 @@
     "path": "/progress",
     "name": "Progress",
     "description": "Progress indicator with determinate/indeterminate states",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/radio-group",
