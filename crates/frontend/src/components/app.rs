@@ -14,7 +14,7 @@ use leptos_router_macro::path;
 use crate::components::{
     entry_list::{EntryList, EntryView},
     fmc_provider::FmcProvider,
-    radix_examples::RadixRoutes,
+    // radix_examples::RadixRoutes,
 };
 
 #[component]
@@ -34,7 +34,7 @@ pub fn App() -> impl IntoView {
                     <Routes transition=true fallback=|| "This page could not be found.">
                         <Route path=path!("about") view=About />
                         <Route path=path!("settings") view=Settings />
-                        <RadixRoutes />
+                        // <RadixRoutes />
                         <ParentRoute path=path!("") view=EntryList>
                             <Route path=path!("/") view=|| "Select a contact." />
                             <Route path=path!("/:id") view=EntryView />
