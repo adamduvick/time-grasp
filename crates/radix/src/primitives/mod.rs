@@ -6,6 +6,7 @@ pub mod scroll_area;
 pub mod separator;
 pub mod slider;
 pub mod switch;
+pub mod toggle;
 
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
@@ -18,3 +19,4 @@ pub use scroll_area::{
 pub use separator::{Separator, SeparatorOrientation};
 pub use slider::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
 pub use switch::{SwitchRoot, SwitchThumb};
+pub use toggle::ToggleRoot;

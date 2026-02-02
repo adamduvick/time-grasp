@@ -159,7 +159,7 @@
     "path": "/toggle",
     "name": "Toggle",
     "description": "On/off button with controlled state",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/toggle-group",
