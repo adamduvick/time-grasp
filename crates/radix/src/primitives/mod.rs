@@ -7,6 +7,7 @@ pub mod separator;
 pub mod slider;
 pub mod switch;
 pub mod toggle;
+pub mod toggle_group;
 
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
@@ -20,3 +21,4 @@ pub use separator::{Separator, SeparatorOrientation};
 pub use slider::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
 pub use switch::{SwitchRoot, SwitchThumb};
 pub use toggle::ToggleRoot;
+pub use toggle_group::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};

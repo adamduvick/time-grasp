@@ -165,7 +165,7 @@
     "path": "/toggle-group",
     "name": "ToggleGroup",
     "description": "Group of toggles with single/multiple selection",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/toolbar",
