@@ -3,6 +3,7 @@ pub mod aspect_ratio;
 pub mod avatar;
 pub mod checkbox;
 pub mod collapsible;
+pub mod dialog;
 pub mod label;
 pub mod progress;
 pub mod radio_group;
@@ -24,6 +25,10 @@ pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use checkbox::{CheckboxIndicator, CheckboxRoot, CheckedState};
 pub use collapsible::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
+pub use dialog::{
+    DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot,
+    DialogTitle, DialogTrigger,
+};
 pub use label::Label;
 pub use progress::{ProgressIndicator, ProgressRoot};
 pub use radio_group::{

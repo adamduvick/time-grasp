@@ -45,7 +45,7 @@
     "path": "/dialog",
     "name": "Dialog",
     "description": "Modal overlay pattern with focus trap and portal",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/dropdown",

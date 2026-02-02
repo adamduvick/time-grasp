@@ -8,6 +8,10 @@ pub use primitives::AspectRatio;
 pub use primitives::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use primitives::{CheckboxIndicator, CheckboxRoot, CheckedState};
 pub use primitives::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
+pub use primitives::{
+    DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot,
+    DialogTitle, DialogTrigger,
+};
 pub use primitives::Label;
 pub use primitives::{ProgressIndicator, ProgressRoot};
 pub use primitives::{
