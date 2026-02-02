@@ -1,3 +1,4 @@
+pub mod accordion;
 pub mod aspect_ratio;
 pub mod avatar;
 pub mod checkbox;
@@ -12,8 +13,13 @@ pub mod switch;
 pub mod tabs;
 pub mod toggle;
 pub mod toggle_group;
+pub mod toolbar;
 pub mod visually_hidden;
 
+pub use accordion::{
+    AccordionContent, AccordionHeader, AccordionItem, AccordionOrientation, AccordionRoot,
+    AccordionTrigger, AccordionType,
+};
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use checkbox::{CheckboxIndicator, CheckboxRoot, CheckedState};
@@ -33,4 +39,8 @@ pub use switch::{SwitchRoot, SwitchThumb};
 pub use tabs::{TabsActivationMode, TabsContent, TabsList, TabsOrientation, TabsRoot, TabsTrigger};
 pub use toggle::ToggleRoot;
 pub use toggle_group::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};
+pub use toolbar::{
+    ToolbarButton, ToolbarLink, ToolbarOrientation, ToolbarRoot, ToolbarSeparator,
+    ToolbarToggleGroup, ToolbarToggleItem, ToolbarToggleType,
+};
 pub use visually_hidden::VisuallyHidden;

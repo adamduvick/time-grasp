@@ -1,5 +1,9 @@
 pub mod primitives;
 
+pub use primitives::{
+    AccordionContent, AccordionHeader, AccordionItem, AccordionOrientation, AccordionRoot,
+    AccordionTrigger, AccordionType,
+};
 pub use primitives::AspectRatio;
 pub use primitives::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use primitives::{CheckboxIndicator, CheckboxRoot, CheckedState};
@@ -19,4 +23,8 @@ pub use primitives::{SwitchRoot, SwitchThumb};
 pub use primitives::{TabsActivationMode, TabsContent, TabsList, TabsOrientation, TabsRoot, TabsTrigger};
 pub use primitives::ToggleRoot;
 pub use primitives::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};
+pub use primitives::{
+    ToolbarButton, ToolbarLink, ToolbarOrientation, ToolbarRoot, ToolbarSeparator,
+    ToolbarToggleGroup, ToolbarToggleItem, ToolbarToggleType,
+};
 pub use primitives::VisuallyHidden;

@@ -3,7 +3,7 @@
     "path": "/accordion",
     "name": "Accordion",
     "description": "Collapsible sections with single/multiple modes",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/alert-dialog",
@@ -171,7 +171,7 @@
     "path": "/toolbar",
     "name": "Toolbar",
     "description": "Toolbar container with toggle groups and buttons",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/tooltip",
