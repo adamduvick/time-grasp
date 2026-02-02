@@ -69,7 +69,7 @@
     "path": "/label",
     "name": "Label",
     "description": "Accessible label with click-to-focus behavior",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/menubar",
