@@ -1,5 +1,6 @@
 pub mod aspect_ratio;
 pub mod avatar;
+pub mod collapsible;
 pub mod label;
 pub mod progress;
 pub mod scroll_area;
@@ -11,6 +12,7 @@ pub mod toggle_group;
 
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
+pub use collapsible::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
 pub use label::Label;
 pub use progress::{ProgressIndicator, ProgressRoot};
 pub use scroll_area::{

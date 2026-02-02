@@ -33,7 +33,7 @@
     "path": "/collapsible",
     "name": "Collapsible",
     "description": "Simple expand/collapse container",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/context-menu",
