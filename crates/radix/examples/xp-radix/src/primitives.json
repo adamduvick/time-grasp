@@ -147,7 +147,7 @@
     "path": "/tabs",
     "name": "Tabs",
     "description": "Tabbed content panels with keyboard navigation",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/toast",

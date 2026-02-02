@@ -9,6 +9,7 @@ pub mod scroll_area;
 pub mod separator;
 pub mod slider;
 pub mod switch;
+pub mod tabs;
 pub mod toggle;
 pub mod toggle_group;
 
@@ -28,5 +29,6 @@ pub use scroll_area::{
 pub use separator::{Separator, SeparatorOrientation};
 pub use slider::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
 pub use switch::{SwitchRoot, SwitchThumb};
+pub use tabs::{TabsActivationMode, TabsContent, TabsList, TabsOrientation, TabsRoot, TabsTrigger};
 pub use toggle::ToggleRoot;
 pub use toggle_group::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};
