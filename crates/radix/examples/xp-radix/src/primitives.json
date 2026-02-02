@@ -183,6 +183,6 @@
     "path": "/visually-hidden",
     "name": "VisuallyHidden",
     "description": "Hide content visually while keeping it accessible",
-    "implemented": false
+    "implemented": true
   }
 ]

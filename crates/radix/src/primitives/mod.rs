@@ -12,6 +12,7 @@ pub mod switch;
 pub mod tabs;
 pub mod toggle;
 pub mod toggle_group;
+pub mod visually_hidden;
 
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
@@ -32,3 +33,4 @@ pub use switch::{SwitchRoot, SwitchThumb};
 pub use tabs::{TabsActivationMode, TabsContent, TabsList, TabsOrientation, TabsRoot, TabsTrigger};
 pub use toggle::ToggleRoot;
 pub use toggle_group::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};
+pub use visually_hidden::VisuallyHidden;

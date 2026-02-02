@@ -19,3 +19,4 @@ pub use primitives::{SwitchRoot, SwitchThumb};
 pub use primitives::{TabsActivationMode, TabsContent, TabsList, TabsOrientation, TabsRoot, TabsTrigger};
 pub use primitives::ToggleRoot;
 pub use primitives::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};
+pub use primitives::VisuallyHidden;
