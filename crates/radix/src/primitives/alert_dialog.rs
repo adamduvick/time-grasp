@@ -5,6 +5,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
 
+// TODO, does it make sense to share code with the Dialog codebase or add some utilities?
+// it could make more sense to leave the two decoupled to leave the option open
+// to include them atomically in projects
+
 static ALERT_DIALOG_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 // Global registry of alert dialog open signals, keyed by dialog ID
@@ -108,8 +112,8 @@ pub fn AlertDialogTrigger(
     /// The trigger content.
     children: ChildrenFn,
 ) -> impl IntoView {
-    let ctx =
-        use_context::<AlertDialogContext>().expect("AlertDialogTrigger must be used within AlertDialogRoot");
+    let ctx = use_context::<AlertDialogContext>()
+        .expect("AlertDialogTrigger must be used within AlertDialogRoot");
 
     let on_click = move |_: web_sys::MouseEvent| {
         ctx.open.set(true);
@@ -141,8 +145,8 @@ pub fn AlertDialogPortal(
     /// The portal content (overlay and content).
     children: ChildrenFn,
 ) -> impl IntoView {
-    let ctx =
-        use_context::<AlertDialogContext>().expect("AlertDialogPortal must be used within AlertDialogRoot");
+    let ctx = use_context::<AlertDialogContext>()
+        .expect("AlertDialogPortal must be used within AlertDialogRoot");
 
     let children = StoredValue::new(children);
 
@@ -157,7 +161,10 @@ pub fn AlertDialogPortal(
 
 /// Inner component that re-provides context inside the portal.
 #[component]
-fn AlertDialogPortalInner(ctx: AlertDialogContext, children: StoredValue<ChildrenFn>) -> impl IntoView {
+fn AlertDialogPortalInner(
+    ctx: AlertDialogContext,
+    children: StoredValue<ChildrenFn>,
+) -> impl IntoView {
     // Re-provide context inside the portal
     provide_context(ctx);
 
@@ -180,8 +187,8 @@ pub fn AlertDialogOverlay(
     #[prop(optional)]
     node_ref: NodeRef<leptos::html::Div>,
 ) -> impl IntoView {
-    let ctx =
-        use_context::<AlertDialogContext>().expect("AlertDialogOverlay must be used within AlertDialogRoot");
+    let ctx = use_context::<AlertDialogContext>()
+        .expect("AlertDialogOverlay must be used within AlertDialogRoot");
 
     let state_attr = move || if ctx.open.get() { "open" } else { "closed" };
 
@@ -216,8 +223,8 @@ pub fn AlertDialogContent(
     /// The content.
     children: ChildrenFn,
 ) -> impl IntoView {
-    let ctx =
-        use_context::<AlertDialogContext>().expect("AlertDialogContent must be used within AlertDialogRoot");
+    let ctx = use_context::<AlertDialogContext>()
+        .expect("AlertDialogContent must be used within AlertDialogRoot");
 
     let content_ref = node_ref;
     let dialog_id = ctx.dialog_id;
@@ -311,17 +318,17 @@ pub fn AlertDialogContent(
                     true
                 } else if is_focus_on_body {
                     // Focus is on body - check if this is the topmost open alert dialog
-                    let all_dialogs = web_sys::window()
-                        .and_then(|w| w.document())
-                        .and_then(|d| d.query_selector_all("[data-radix-alert-dialog-content]").ok());
+                    let all_dialogs = web_sys::window().and_then(|w| w.document()).and_then(|d| {
+                        d.query_selector_all("[data-radix-alert-dialog-content]")
+                            .ok()
+                    });
 
                     match all_dialogs {
-                        Some(list) if list.length() > 0 => {
-                            list.get(list.length() - 1)
-                                .and_then(|node| node.dyn_into::<web_sys::Element>().ok())
-                                .map(|el| el == content)
-                                .unwrap_or(false)
-                        }
+                        Some(list) if list.length() > 0 => list
+                            .get(list.length() - 1)
+                            .and_then(|node| node.dyn_into::<web_sys::Element>().ok())
+                            .map(|el| el == content)
+                            .unwrap_or(false),
                         _ => true,
                     }
                 } else {
@@ -338,8 +345,7 @@ pub fn AlertDialogContent(
                     if tag_name == "INPUT" || tag_name == "TEXTAREA" || tag_name == "SELECT" {
                         ev.prevent_default();
                         ev.stop_propagation();
-                        if let Ok(html_active) = active.clone().dyn_into::<web_sys::HtmlElement>()
-                        {
+                        if let Ok(html_active) = active.clone().dyn_into::<web_sys::HtmlElement>() {
                             let _ = html_active.blur();
                         }
                         return;
@@ -476,8 +482,8 @@ pub fn AlertDialogTitle(
     /// The title content.
     children: ChildrenFn,
 ) -> impl IntoView {
-    let ctx =
-        use_context::<AlertDialogContext>().expect("AlertDialogTitle must be used within AlertDialogRoot");
+    let ctx = use_context::<AlertDialogContext>()
+        .expect("AlertDialogTitle must be used within AlertDialogRoot");
 
     let title_id = ctx.title_id.get_value();
 
