@@ -57,7 +57,7 @@
     "path": "/dropdown",
     "name": "DropdownMenu",
     "description": "Menu triggered by button with keyboard navigation",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/form",

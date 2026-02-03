@@ -18,6 +18,11 @@ pub use primitives::{
     DialogTitle, DialogTrigger,
 };
 pub use primitives::{
+    DropdownMenuAlign, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
+    DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuSeparator,
+    DropdownMenuSide, DropdownMenuTrigger,
+};
+pub use primitives::{
     HoverCardAlign, HoverCardArrow, HoverCardContent, HoverCardPortal, HoverCardRoot,
     HoverCardSide, HoverCardTrigger,
 };
