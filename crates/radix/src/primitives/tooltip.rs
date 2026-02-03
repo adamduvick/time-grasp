@@ -1,54 +1,21 @@
 use leptos::portal::Portal;
 use leptos::prelude::*;
 use std::sync::atomic::{AtomicU64, Ordering};
-use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
+use wasm_bindgen::JsCast;
+
+use crate::primitives::popper::{
+    PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperContext, PopperRoot, PopperSide,
+};
+
+/// Re-export popper types for convenience
+pub use crate::primitives::popper::{PopperAlign as TooltipAlign, PopperSide as TooltipSide};
 
 // Global timestamp of when any tooltip was last open (for skip delay behavior)
 static LAST_TOOLTIP_CLOSE_TIME: AtomicU64 = AtomicU64::new(0);
 
 fn current_time_ms() -> u64 {
     js_sys::Date::now() as u64
-}
-
-/// Side for tooltip positioning.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum TooltipSide {
-    #[default]
-    Top,
-    Right,
-    Bottom,
-    Left,
-}
-
-impl TooltipSide {
-    fn as_str(&self) -> &'static str {
-        match self {
-            TooltipSide::Top => "top",
-            TooltipSide::Right => "right",
-            TooltipSide::Bottom => "bottom",
-            TooltipSide::Left => "left",
-        }
-    }
-}
-
-/// Alignment for tooltip positioning.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum TooltipAlign {
-    Start,
-    #[default]
-    Center,
-    End,
-}
-
-impl TooltipAlign {
-    fn as_str(&self) -> &'static str {
-        match self {
-            TooltipAlign::Start => "start",
-            TooltipAlign::Center => "center",
-            TooltipAlign::End => "end",
-        }
-    }
 }
 
 /// Provider context for tooltip delay settings.
@@ -84,25 +51,12 @@ pub fn TooltipProvider(
 #[derive(Clone, Copy)]
 struct TooltipContext {
     open: RwSignal<bool>,
-    trigger_rect: RwSignal<Option<TriggerRect>>,
     delay_duration: u32,
     skip_delay_duration: u32,
     /// Tracks whether the tooltip opened with a delay or instantly
     was_instant: RwSignal<bool>,
-    /// Current side for arrow positioning
-    current_side: RwSignal<TooltipSide>,
     /// Whether pointer is currently over trigger or content (grace period for moving between them)
     is_pointer_inside: RwSignal<bool>,
-    /// Arrow height for offset calculation (set by TooltipArrow)
-    arrow_height: RwSignal<u32>,
-}
-
-#[derive(Clone, Copy, Default)]
-struct TriggerRect {
-    x: f64,
-    y: f64,
-    width: f64,
-    height: f64,
 }
 
 /// Root container for a tooltip.
@@ -132,26 +86,24 @@ pub fn TooltipRoot(
     let skip_delay = provider_ctx.map(|p| p.skip_delay_duration).unwrap_or(300);
 
     let open_signal = open.unwrap_or_else(|| RwSignal::new(default_open));
-    let trigger_rect = RwSignal::new(None);
     let was_instant = RwSignal::new(false);
-    let current_side = RwSignal::new(TooltipSide::Top);
     let is_pointer_inside = RwSignal::new(false);
-    let arrow_height = RwSignal::new(5); // Default arrow height
 
     let ctx = TooltipContext {
         open: open_signal,
-        trigger_rect,
         delay_duration: delay,
         skip_delay_duration: skip_delay,
         was_instant,
-        current_side,
         is_pointer_inside,
-        arrow_height,
     };
 
     provide_context(ctx);
 
-    children()
+    view! {
+        <PopperRoot>
+            {children()}
+        </PopperRoot>
+    }
 }
 
 /// Trigger element that shows tooltip on hover/focus.
@@ -165,31 +117,20 @@ pub fn TooltipTrigger(
     #[prop(optional, into)]
     style: Option<String>,
 
-    /// Reference to the trigger element.
-    #[prop(optional)]
-    node_ref: NodeRef<leptos::html::Span>,
-
     /// The trigger content.
     children: Children,
 ) -> impl IntoView {
     let ctx =
         use_context::<TooltipContext>().expect("TooltipTrigger must be used within TooltipRoot");
 
-    let trigger_ref: NodeRef<leptos::html::Span> = node_ref;
     let hover_timeout: StoredValue<Option<i32>> = StoredValue::new(None);
+    let close_timeout: StoredValue<Option<i32>> = StoredValue::new(None);
 
-    let update_trigger_rect = move || {
-        if let Some(el) = trigger_ref.get() {
-            let html_el: &web_sys::HtmlElement = &el;
-            let rect = html_el.get_bounding_client_rect();
-            ctx.trigger_rect.set(Some(TriggerRect {
-                x: rect.x(),
-                y: rect.y(),
-                width: rect.width(),
-                height: rect.height(),
-            }));
-        }
-    };
+    let open_signal = ctx.open;
+    let was_instant = ctx.was_instant;
+    let is_pointer_inside = ctx.is_pointer_inside;
+    let delay_duration = ctx.delay_duration;
+    let skip_delay_duration = ctx.skip_delay_duration;
 
     let clear_timeout = move || {
         if let Some(id) = hover_timeout.get_value() {
@@ -200,14 +141,6 @@ pub fn TooltipTrigger(
         }
     };
 
-    let open_tooltip = move |instant: bool| {
-        update_trigger_rect();
-        ctx.was_instant.set(instant);
-        ctx.open.set(true);
-    };
-
-    let close_timeout: StoredValue<Option<i32>> = StoredValue::new(None);
-
     let clear_close_timeout = move || {
         if let Some(id) = close_timeout.get_value() {
             if let Some(window) = web_sys::window() {
@@ -217,17 +150,22 @@ pub fn TooltipTrigger(
         }
     };
 
+    let open_tooltip = move |instant: bool| {
+        was_instant.set(instant);
+        open_signal.set(true);
+    };
+
     let schedule_close = move || {
         clear_close_timeout();
         // Small grace period to allow moving to content
         if let Some(window) = web_sys::window() {
             let callback = Closure::<dyn Fn()>::new(move || {
                 // Only close if pointer is not inside trigger or content
-                if !ctx.is_pointer_inside.get() {
-                    if ctx.open.get() {
+                if !is_pointer_inside.get() {
+                    if open_signal.get() {
                         LAST_TOOLTIP_CLOSE_TIME.store(current_time_ms(), Ordering::Relaxed);
                     }
-                    ctx.open.set(false);
+                    open_signal.set(false);
                 }
             });
 
@@ -245,14 +183,14 @@ pub fn TooltipTrigger(
     let on_mouse_enter = move |_: web_sys::MouseEvent| {
         clear_timeout();
         clear_close_timeout();
-        ctx.is_pointer_inside.set(true);
+        is_pointer_inside.set(true);
 
         // Check if we should skip the delay (recently viewed another tooltip)
         let last_close = LAST_TOOLTIP_CLOSE_TIME.load(Ordering::Relaxed);
         let now = current_time_ms();
-        let skip_delay = now.saturating_sub(last_close) < ctx.skip_delay_duration as u64;
+        let skip_delay = now.saturating_sub(last_close) < skip_delay_duration as u64;
 
-        if ctx.delay_duration == 0 || skip_delay {
+        if delay_duration == 0 || skip_delay {
             open_tooltip(true);
         } else {
             // Set up delayed open
@@ -263,7 +201,7 @@ pub fn TooltipTrigger(
 
                 if let Ok(id) = window.set_timeout_with_callback_and_timeout_and_arguments_0(
                     callback.as_ref().unchecked_ref(),
-                    ctx.delay_duration as i32,
+                    delay_duration as i32,
                 ) {
                     hover_timeout.set_value(Some(id));
                 }
@@ -275,10 +213,9 @@ pub fn TooltipTrigger(
 
     let on_mouse_leave = move |_: web_sys::MouseEvent| {
         clear_timeout();
-        ctx.is_pointer_inside.set(false);
+        is_pointer_inside.set(false);
         // Update timestamp immediately when leaving an open tooltip (for skip delay behavior)
-        // This ensures moving quickly between tooltips works, even before the grace period closes the tooltip
-        if ctx.open.get() {
+        if open_signal.get() {
             LAST_TOOLTIP_CLOSE_TIME.store(current_time_ms(), Ordering::Relaxed);
         }
         schedule_close();
@@ -291,24 +228,24 @@ pub fn TooltipTrigger(
 
     let on_blur = move |_: web_sys::FocusEvent| {
         clear_timeout();
-        if ctx.open.get() {
+        if open_signal.get() {
             LAST_TOOLTIP_CLOSE_TIME.store(current_time_ms(), Ordering::Relaxed);
         }
-        ctx.open.set(false);
+        open_signal.set(false);
     };
 
     // Handle Escape key to close tooltip
     let on_keydown = move |ev: web_sys::KeyboardEvent| {
-        if ev.key() == "Escape" && ctx.open.get() {
+        if ev.key() == "Escape" && open_signal.get() {
             ev.prevent_default();
             LAST_TOOLTIP_CLOSE_TIME.store(current_time_ms(), Ordering::Relaxed);
-            ctx.open.set(false);
+            open_signal.set(false);
         }
     };
 
     let state_attr = move || {
-        if ctx.open.get() {
-            if ctx.was_instant.get() {
+        if open_signal.get() {
+            if was_instant.get() {
                 "instant-open"
             } else {
                 "delayed-open"
@@ -319,20 +256,19 @@ pub fn TooltipTrigger(
     };
 
     view! {
-        <span
-            node_ref=trigger_ref
-            class=class
-            style=style
-            data-radix-tooltip-trigger=""
-            data-state=state_attr
-            on:mouseenter=on_mouse_enter
-            on:mouseleave=on_mouse_leave
-            on:focus=on_focus
-            on:blur=on_blur
-            on:keydown=on_keydown
-        >
-            {children()}
-        </span>
+        <PopperAnchor class=class.unwrap_or_default() style=style.unwrap_or_default()>
+            <span
+                data-radix-tooltip-trigger=""
+                data-state=state_attr
+                on:mouseenter=on_mouse_enter
+                on:mouseleave=on_mouse_leave
+                on:focus=on_focus
+                on:blur=on_blur
+                on:keydown=on_keydown
+            >
+                {children()}
+            </span>
+        </PopperAnchor>
     }
 }
 
@@ -342,15 +278,17 @@ pub fn TooltipPortal(
     /// The portal content.
     children: ChildrenFn,
 ) -> impl IntoView {
-    let ctx =
+    let tooltip_ctx =
         use_context::<TooltipContext>().expect("TooltipPortal must be used within TooltipRoot");
+    let popper_ctx =
+        use_context::<PopperContext>().expect("TooltipPortal must be used within TooltipRoot");
 
     let children = StoredValue::new(children);
 
     view! {
-        <Show when=move || ctx.open.get()>
+        <Show when=move || tooltip_ctx.open.get()>
             <Portal>
-                <TooltipPortalInner ctx=ctx children=children />
+                <TooltipPortalInner tooltip_ctx=tooltip_ctx popper_ctx=popper_ctx children=children />
             </Portal>
         </Show>
     }
@@ -358,14 +296,43 @@ pub fn TooltipPortal(
 
 /// Inner component that re-provides context inside the portal.
 #[component]
-fn TooltipPortalInner(ctx: TooltipContext, children: StoredValue<ChildrenFn>) -> impl IntoView {
-    provide_context(ctx);
+fn TooltipPortalInner(
+    tooltip_ctx: TooltipContext,
+    popper_ctx: PopperContext,
+    children: StoredValue<ChildrenFn>,
+) -> impl IntoView {
+    provide_context(tooltip_ctx);
+    provide_context(popper_ctx);
     children.with_value(|c| c())
 }
 
 /// The tooltip content.
 #[component]
 pub fn TooltipContent(
+    /// Which side of the trigger to show the tooltip.
+    #[prop(into, default = Signal::derive(|| PopperSide::Top))]
+    side: Signal<PopperSide>,
+
+    /// Offset from the trigger in pixels.
+    #[prop(into, default = Signal::derive(|| 0i32))]
+    side_offset: Signal<i32>,
+
+    /// Alignment along the side.
+    #[prop(into, default = Signal::derive(|| PopperAlign::Center))]
+    align: Signal<PopperAlign>,
+
+    /// Offset along the alignment axis.
+    #[prop(into, default = Signal::derive(|| 0i32))]
+    align_offset: Signal<i32>,
+
+    /// Whether to avoid collisions with viewport boundaries.
+    #[prop(into, default = Signal::derive(|| true))]
+    avoid_collisions: Signal<bool>,
+
+    /// Padding from viewport edges for collision detection.
+    #[prop(into, default = Signal::derive(|| 0i32))]
+    collision_padding: Signal<i32>,
+
     /// CSS class name(s) for styling.
     #[prop(optional, into)]
     class: Option<String>,
@@ -373,18 +340,6 @@ pub fn TooltipContent(
     /// Inline styles.
     #[prop(optional, into)]
     style: Option<String>,
-
-    /// Which side of the trigger to show the tooltip.
-    #[prop(default = TooltipSide::Top)]
-    side: TooltipSide,
-
-    /// Alignment along the side.
-    #[prop(default = TooltipAlign::Center)]
-    align: TooltipAlign,
-
-    /// Offset from the trigger in pixels.
-    #[prop(default = 0)]
-    side_offset: i32,
 
     /// Reference to the content element.
     #[prop(optional)]
@@ -396,26 +351,28 @@ pub fn TooltipContent(
     let ctx =
         use_context::<TooltipContext>().expect("TooltipContent must be used within TooltipRoot");
 
-    // Store the side in context so arrow can access it
-    ctx.current_side.set(side);
-
     let content_ref: NodeRef<leptos::html::Div> = node_ref;
+    let children = StoredValue::new(children);
+
+    let open_signal = ctx.open;
+    let was_instant = ctx.was_instant;
+    let is_pointer_inside = ctx.is_pointer_inside;
 
     // Mouse handlers to keep tooltip open when hovering over content
     let on_mouse_enter = move |_: web_sys::MouseEvent| {
-        ctx.is_pointer_inside.set(true);
+        is_pointer_inside.set(true);
     };
 
     let on_mouse_leave = move |_: web_sys::MouseEvent| {
-        ctx.is_pointer_inside.set(false);
+        is_pointer_inside.set(false);
         // Schedule close with grace period
         if let Some(window) = web_sys::window() {
             let callback = Closure::<dyn Fn()>::new(move || {
-                if !ctx.is_pointer_inside.get() {
-                    if ctx.open.get() {
+                if !is_pointer_inside.get() {
+                    if open_signal.get() {
                         LAST_TOOLTIP_CLOSE_TIME.store(current_time_ms(), Ordering::Relaxed);
                     }
-                    ctx.open.set(false);
+                    open_signal.set(false);
                 }
             });
 
@@ -428,103 +385,9 @@ pub fn TooltipContent(
         }
     };
 
-    // Calculate position based on trigger rect and side
-    let position_style = move || {
-        let Some(rect) = ctx.trigger_rect.get() else {
-            return String::new();
-        };
-
-        // Get scroll offsets
-        let (scroll_x, scroll_y) = web_sys::window()
-            .map(|w| (w.scroll_x().unwrap_or(0.0), w.scroll_y().unwrap_or(0.0)))
-            .unwrap_or((0.0, 0.0));
-
-        let trigger_center_x = rect.x + rect.width / 2.0 + scroll_x;
-        let trigger_center_y = rect.y + rect.height / 2.0 + scroll_y;
-        // Include arrow height in offset (like React Radix does)
-        let arrow_h = ctx.arrow_height.get() as f64;
-        let offset = side_offset as f64 + arrow_h;
-
-        let (left, top, transform) = match side {
-            TooltipSide::Top => {
-                let left = trigger_center_x;
-                let top = rect.y + scroll_y - offset;
-                let transform = match align {
-                    TooltipAlign::Start => "translateX(0) translateY(-100%)",
-                    TooltipAlign::Center => "translateX(-50%) translateY(-100%)",
-                    TooltipAlign::End => "translateX(-100%) translateY(-100%)",
-                };
-                let left = match align {
-                    TooltipAlign::Start => rect.x + scroll_x,
-                    TooltipAlign::Center => left,
-                    TooltipAlign::End => rect.x + rect.width + scroll_x,
-                };
-                (left, top, transform)
-            }
-            TooltipSide::Bottom => {
-                let left = trigger_center_x;
-                let top = rect.y + rect.height + scroll_y + offset;
-                let transform = match align {
-                    TooltipAlign::Start => "translateX(0)",
-                    TooltipAlign::Center => "translateX(-50%)",
-                    TooltipAlign::End => "translateX(-100%)",
-                };
-                let left = match align {
-                    TooltipAlign::Start => rect.x + scroll_x,
-                    TooltipAlign::Center => left,
-                    TooltipAlign::End => rect.x + rect.width + scroll_x,
-                };
-                (left, top, transform)
-            }
-            TooltipSide::Left => {
-                let left = rect.x + scroll_x - offset;
-                let top = trigger_center_y;
-                let transform = match align {
-                    TooltipAlign::Start => "translateX(-100%) translateY(0)",
-                    TooltipAlign::Center => "translateX(-100%) translateY(-50%)",
-                    TooltipAlign::End => "translateX(-100%) translateY(-100%)",
-                };
-                let top = match align {
-                    TooltipAlign::Start => rect.y + scroll_y,
-                    TooltipAlign::Center => top,
-                    TooltipAlign::End => rect.y + rect.height + scroll_y,
-                };
-                (left, top, transform)
-            }
-            TooltipSide::Right => {
-                let left = rect.x + rect.width + scroll_x + offset;
-                let top = trigger_center_y;
-                let transform = match align {
-                    TooltipAlign::Start => "translateY(0)",
-                    TooltipAlign::Center => "translateY(-50%)",
-                    TooltipAlign::End => "translateY(-100%)",
-                };
-                let top = match align {
-                    TooltipAlign::Start => rect.y + scroll_y,
-                    TooltipAlign::Center => top,
-                    TooltipAlign::End => rect.y + rect.height + scroll_y,
-                };
-                (left, top, transform)
-            }
-        };
-
-        format!(
-            "position: absolute; left: {:.0}px; top: {:.0}px; transform: {}; z-index: 50;",
-            left, top, transform
-        )
-    };
-
-    let combined_style = move || {
-        let pos = position_style();
-        match &style {
-            Some(s) => format!("{} {}", pos, s),
-            None => pos,
-        }
-    };
-
     let state_attr = move || {
-        if ctx.open.get() {
-            if ctx.was_instant.get() {
+        if open_signal.get() {
+            if was_instant.get() {
                 "instant-open"
             } else {
                 "delayed-open"
@@ -534,38 +397,36 @@ pub fn TooltipContent(
         }
     };
 
-    // Close on mouse enter of content (to handle edge cases)
-    let on_pointer_down_outside = move |_: web_sys::MouseEvent| {
-        LAST_TOOLTIP_CLOSE_TIME.store(current_time_ms(), Ordering::Relaxed);
-        ctx.open.set(false);
-    };
+    let class_val = StoredValue::new(class.unwrap_or_default());
 
     view! {
-        <div
-            node_ref=content_ref
-            role="tooltip"
-            class=class
-            style=combined_style
-            data-radix-tooltip-content=""
-            data-state=state_attr
-            data-side=side.as_str()
-            data-align=align.as_str()
-            on:mouseenter=on_mouse_enter
-            on:mouseleave=on_mouse_leave
-            on:pointerdownoutside=on_pointer_down_outside
+        <PopperContent
+            side=side
+            side_offset=side_offset
+            align=align
+            align_offset=align_offset
+            avoid_collisions=avoid_collisions
+            collision_padding=collision_padding
+            style=style.unwrap_or_default()
         >
-            {children()}
-        </div>
+            <div
+                node_ref=content_ref
+                role="tooltip"
+                class=class_val.get_value()
+                data-radix-tooltip-content=""
+                data-state=state_attr
+                on:mouseenter=on_mouse_enter
+                on:mouseleave=on_mouse_leave
+            >
+                {children.with_value(|c| c())}
+            </div>
+        </PopperContent>
     }
 }
 
 /// Arrow component that points to the trigger.
 #[component]
 pub fn TooltipArrow(
-    /// CSS class name(s) for styling.
-    #[prop(optional, into)]
-    class: Option<String>,
-
     /// Width of the arrow in pixels.
     #[prop(default = 10)]
     width: u32,
@@ -573,61 +434,12 @@ pub fn TooltipArrow(
     /// Height of the arrow in pixels.
     #[prop(default = 5)]
     height: u32,
+
+    /// CSS class name(s) for styling.
+    #[prop(optional, into)]
+    class: Option<String>,
 ) -> impl IntoView {
-    let ctx =
-        use_context::<TooltipContext>().expect("TooltipArrow must be used within TooltipRoot");
-
-    // Set arrow height in context for offset calculation
-    ctx.arrow_height.set(height);
-
-    // Arrow rotation and positioning based on tooltip side
-    // The arrow is anchored to the edge and uses transform to extend outside the content box
-    // This matches React Radix behavior where the arrow extends from the tooltip edge
-    // Note: The arrow SVG points DOWN by default (like React Radix), so:
-    // - Top: no rotation (points down toward trigger)
-    // - Bottom: 180deg (points up toward trigger)
-    // - Left: -90deg (points right toward trigger)
-    // - Right: 90deg (points left toward trigger)
-    // For left/right, we use the arrow height for translation since after rotation
-    // the visual protrusion is the height, not the width
-    let arrow_style = move || {
-        let side = ctx.current_side.get();
-        match side {
-            // Tooltip above trigger -> arrow at bottom pointing down (no rotation)
-            TooltipSide::Top => {
-                "position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);".to_string()
-            }
-            // Tooltip below trigger -> arrow at top pointing up (rotate 180deg)
-            TooltipSide::Bottom => {
-                "position: absolute; top: 0; left: 50%; transform: translateX(-50%) translateY(-100%) rotate(180deg);".to_string()
-            }
-            // Tooltip left of trigger -> arrow at right pointing right (rotate -90deg)
-            // Use height for X translation since that's the visual protrusion after rotation
-            TooltipSide::Left => {
-                format!("position: absolute; right: 0; top: 50%; transform: translateY(-50%) translateX({}px) rotate(-90deg);", height)
-            }
-            // Tooltip right of trigger -> arrow at left pointing left (rotate 90deg)
-            // Use height for X translation since that's the visual protrusion after rotation
-            TooltipSide::Right => {
-                format!("position: absolute; left: 0; top: 50%; transform: translateY(-50%) translateX(-{}px) rotate(90deg);", height)
-            }
-        }
-    };
-
-    // Arrow shape: flat top edge, tip at bottom (like React Radix "0,0 30,0 15,10")
-    let points = format!("0,0 {},0 {},{}", width, width / 2, height);
-
     view! {
-        <svg
-            class=class
-            width=width
-            height=height
-            viewBox=format!("0 0 {} {}", width, height)
-            preserveAspectRatio="none"
-            data-radix-tooltip-arrow=""
-            style=arrow_style
-        >
-            <polygon points=points />
-        </svg>
+        <PopperArrow width=width height=height class=class.unwrap_or_default() />
     }
 }
