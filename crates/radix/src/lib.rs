@@ -8,6 +8,7 @@ pub use primitives::{
     AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
     AlertDialogOverlay, AlertDialogPortal, AlertDialogRoot, AlertDialogTitle, AlertDialogTrigger,
 };
+pub use primitives::Arrow;
 pub use primitives::AspectRatio;
 pub use primitives::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use primitives::{CheckboxIndicator, CheckboxRoot, CheckedState};
@@ -17,6 +18,7 @@ pub use primitives::{
     DialogTitle, DialogTrigger,
 };
 pub use primitives::Label;
+pub use primitives::{PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperRoot, PopperSide};
 pub use primitives::{ProgressIndicator, ProgressRoot};
 pub use primitives::{
     RadioGroupIndicator, RadioGroupItem, RadioGroupOrientation, RadioGroupRoot,
@@ -34,5 +36,9 @@ pub use primitives::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, T
 pub use primitives::{
     ToolbarButton, ToolbarLink, ToolbarOrientation, ToolbarRoot, ToolbarSeparator,
     ToolbarToggleGroup, ToolbarToggleItem, ToolbarToggleType,
+};
+pub use primitives::{
+    TooltipAlign, TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot,
+    TooltipSide, TooltipTrigger,
 };
 pub use primitives::VisuallyHidden;

@@ -11,6 +11,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/") view=crate::routes::Home />
                     <Route path=path!("/accordion") view=crate::routes::AccordionExample />
                     <Route path=path!("/alert-dialog") view=crate::routes::AlertDialogExample />
+                    <Route path=path!("/arrow") view=crate::routes::ArrowExample />
                     <Route path=path!("/aspect-ratio") view=crate::routes::AspectRatioExample />
                     <Route path=path!("/avatar") view=crate::routes::AvatarExample />
                     <Route path=path!("/checkbox") view=crate::routes::CheckboxExample />
@@ -26,6 +27,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/otp-field") view=crate::routes::OtpFieldExample />
                     <Route path=path!("/password-toggle-field") view=crate::routes::PasswordToggleFieldExample />
                     <Route path=path!("/popover") view=crate::routes::PopoverExample />
+                    <Route path=path!("/popper") view=crate::routes::PopperExample />
                     <Route path=path!("/progress") view=crate::routes::ProgressExample />
                     <Route path=path!("/radio-group") view=crate::routes::RadioGroupExample />
                     <Route path=path!("/scroll-area") view=crate::routes::ScrollAreaExample />

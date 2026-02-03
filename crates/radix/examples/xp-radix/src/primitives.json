@@ -12,6 +12,12 @@
     "implemented": true
   },
   {
+    "path": "/arrow",
+    "name": "Arrow",
+    "description": "Low-level SVG arrow shape for composition",
+    "implemented": true
+  },
+  {
     "path": "/aspect-ratio",
     "name": "AspectRatio",
     "description": "Maintains consistent width/height ratio",
@@ -100,6 +106,12 @@
     "name": "Popover",
     "description": "Floating content anchored to a trigger element",
     "implemented": false
+  },
+  {
+    "path": "/popper",
+    "name": "Popper",
+    "description": "Low-level positioning engine for floating content",
+    "implemented": true
   },
   {
     "path": "/progress",

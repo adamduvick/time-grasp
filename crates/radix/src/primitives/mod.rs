@@ -1,11 +1,13 @@
 pub mod accordion;
 pub mod alert_dialog;
+pub mod arrow;
 pub mod aspect_ratio;
 pub mod avatar;
 pub mod checkbox;
 pub mod collapsible;
 pub mod dialog;
 pub mod label;
+pub mod popper;
 pub mod progress;
 pub mod radio_group;
 pub mod scroll_area;
@@ -26,6 +28,7 @@ pub use alert_dialog::{
     AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
     AlertDialogOverlay, AlertDialogPortal, AlertDialogRoot, AlertDialogTitle, AlertDialogTrigger,
 };
+pub use arrow::Arrow;
 pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use checkbox::{CheckboxIndicator, CheckboxRoot, CheckedState};
@@ -35,6 +38,7 @@ pub use dialog::{
     DialogTitle, DialogTrigger,
 };
 pub use label::Label;
+pub use popper::{PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperRoot, PopperSide};
 pub use progress::{ProgressIndicator, ProgressRoot};
 pub use radio_group::{
     RadioGroupIndicator, RadioGroupItem, RadioGroupOrientation, RadioGroupRoot,
