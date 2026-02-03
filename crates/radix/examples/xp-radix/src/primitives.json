@@ -189,7 +189,7 @@
     "path": "/tooltip",
     "name": "Tooltip",
     "description": "Hover/focus hints with delay and positioning",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/visually-hidden",

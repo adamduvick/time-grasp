@@ -18,6 +18,7 @@ pub mod tabs;
 pub mod toggle;
 pub mod toggle_group;
 pub mod toolbar;
+pub mod tooltip;
 pub mod visually_hidden;
 
 pub use accordion::{
@@ -56,5 +57,9 @@ pub use toggle_group::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot,
 pub use toolbar::{
     ToolbarButton, ToolbarLink, ToolbarOrientation, ToolbarRoot, ToolbarSeparator,
     ToolbarToggleGroup, ToolbarToggleItem, ToolbarToggleType,
+};
+pub use tooltip::{
+    TooltipAlign, TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot,
+    TooltipSide, TooltipTrigger,
 };
 pub use visually_hidden::VisuallyHidden;
