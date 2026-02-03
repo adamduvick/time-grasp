@@ -69,7 +69,7 @@
     "path": "/hover-card",
     "name": "HoverCard",
     "description": "Rich content on hover with open/close delays",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/label",

@@ -17,6 +17,10 @@ pub use primitives::{
     DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot,
     DialogTitle, DialogTrigger,
 };
+pub use primitives::{
+    HoverCardAlign, HoverCardArrow, HoverCardContent, HoverCardPortal, HoverCardRoot,
+    HoverCardSide, HoverCardTrigger,
+};
 pub use primitives::Label;
 pub use primitives::{
     PopoverAlign, PopoverAnchor, PopoverArrow, PopoverClose, PopoverContent, PopoverPortal,

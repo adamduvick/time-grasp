@@ -6,6 +6,7 @@ pub mod avatar;
 pub mod checkbox;
 pub mod collapsible;
 pub mod dialog;
+pub mod hover_card;
 pub mod label;
 pub mod popover;
 pub mod popper;
@@ -38,6 +39,10 @@ pub use collapsible::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
 pub use dialog::{
     DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot,
     DialogTitle, DialogTrigger,
+};
+pub use hover_card::{
+    HoverCardAlign, HoverCardArrow, HoverCardContent, HoverCardPortal, HoverCardRoot,
+    HoverCardSide, HoverCardTrigger,
 };
 pub use label::Label;
 pub use popover::{
