@@ -5,6 +5,7 @@ pub mod aspect_ratio;
 pub mod avatar;
 pub mod checkbox;
 pub mod collapsible;
+pub mod context_menu;
 pub mod dialog;
 pub mod dropdown_menu;
 pub mod hover_card;
@@ -37,6 +38,12 @@ pub use aspect_ratio::AspectRatio;
 pub use avatar::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus};
 pub use checkbox::{CheckboxIndicator, CheckboxRoot, CheckedState};
 pub use collapsible::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
+pub use context_menu::{
+    ContextMenuCheckboxItem, ContextMenuContent, ContextMenuGroup, ContextMenuItem,
+    ContextMenuItemIndicator, ContextMenuLabel, ContextMenuPortal, ContextMenuRadioGroup,
+    ContextMenuRadioItem, ContextMenuRoot, ContextMenuSeparator, ContextMenuSub,
+    ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger,
+};
 pub use dialog::{
     DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot,
     DialogTitle, DialogTrigger,

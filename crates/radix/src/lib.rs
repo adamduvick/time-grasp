@@ -14,6 +14,12 @@ pub use primitives::{AvatarFallback, AvatarImage, AvatarRoot, ImageLoadingStatus
 pub use primitives::{CheckboxIndicator, CheckboxRoot, CheckedState};
 pub use primitives::{CollapsibleContent, CollapsibleRoot, CollapsibleTrigger};
 pub use primitives::{
+    ContextMenuCheckboxItem, ContextMenuContent, ContextMenuGroup, ContextMenuItem,
+    ContextMenuItemIndicator, ContextMenuLabel, ContextMenuPortal, ContextMenuRadioGroup,
+    ContextMenuRadioItem, ContextMenuRoot, ContextMenuSeparator, ContextMenuSub,
+    ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger,
+};
+pub use primitives::{
     DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot,
     DialogTitle, DialogTrigger,
 };

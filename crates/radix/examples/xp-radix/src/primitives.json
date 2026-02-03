@@ -45,7 +45,7 @@
     "path": "/context-menu",
     "name": "ContextMenu",
     "description": "Right-click menu with submenus",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/dialog",
