@@ -135,7 +135,7 @@
     "path": "/select",
     "name": "Select",
     "description": "Custom dropdown select with typeahead",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/separator",

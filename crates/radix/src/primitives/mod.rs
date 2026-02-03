@@ -15,6 +15,7 @@ pub mod popper;
 pub mod progress;
 pub mod radio_group;
 pub mod scroll_area;
+pub mod select;
 pub mod separator;
 pub mod slider;
 pub mod switch;
@@ -70,6 +71,11 @@ pub use radio_group::{
 pub use scroll_area::{
     Orientation, ScrollAreaCorner, ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb,
     ScrollAreaViewport, ScrollType,
+};
+pub use select::{
+    SelectContent, SelectGroup, SelectIcon, SelectItem, SelectItemIndicator, SelectItemText,
+    SelectLabel, SelectPortal, SelectRoot, SelectScrollDownButton, SelectScrollUpButton,
+    SelectSeparator, SelectTrigger, SelectValue, SelectViewport,
 };
 pub use separator::{Separator, SeparatorOrientation};
 pub use slider::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};

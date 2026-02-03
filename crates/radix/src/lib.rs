@@ -46,6 +46,11 @@ pub use primitives::{
     Orientation, ScrollAreaCorner, ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb,
     ScrollAreaViewport, ScrollType,
 };
+pub use primitives::{
+    SelectContent, SelectGroup, SelectIcon, SelectItem, SelectItemIndicator, SelectItemText,
+    SelectLabel, SelectPortal, SelectRoot, SelectScrollDownButton, SelectScrollUpButton,
+    SelectSeparator, SelectTrigger, SelectValue, SelectViewport,
+};
 pub use primitives::{Separator, SeparatorOrientation};
 pub use primitives::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
 pub use primitives::{SwitchRoot, SwitchThumb};
