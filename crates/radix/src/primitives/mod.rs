@@ -7,6 +7,7 @@ pub mod checkbox;
 pub mod collapsible;
 pub mod dialog;
 pub mod label;
+pub mod popover;
 pub mod popper;
 pub mod progress;
 pub mod radio_group;
@@ -39,7 +40,11 @@ pub use dialog::{
     DialogTitle, DialogTrigger,
 };
 pub use label::Label;
-pub use popper::{PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperRoot, PopperSide};
+pub use popover::{
+    PopoverAlign, PopoverAnchor, PopoverArrow, PopoverClose, PopoverContent, PopoverPortal,
+    PopoverRoot, PopoverSide, PopoverTrigger,
+};
+pub use popper::{PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperContext, PopperRoot, PopperSide};
 pub use progress::{ProgressIndicator, ProgressRoot};
 pub use radio_group::{
     RadioGroupIndicator, RadioGroupItem, RadioGroupOrientation, RadioGroupRoot,

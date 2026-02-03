@@ -142,12 +142,13 @@ struct PositionData {
 }
 
 /// Context shared between Popper components.
+/// Made public so consumers (like Popover) can re-provide it inside portals.
 #[derive(Clone, Copy)]
-struct PopperContext {
+pub struct PopperContext {
     /// NodeRef to the anchor element for measurements
-    anchor_ref: NodeRef<leptos::html::Div>,
+    pub anchor_ref: NodeRef<leptos::html::Div>,
     /// Signal to trigger position updates
-    update_trigger: RwSignal<u32>,
+    pub update_trigger: RwSignal<u32>,
 }
 
 /// Context shared between PopperContent and PopperArrow.
@@ -209,11 +210,17 @@ pub fn PopperAnchor(
         }
     });
 
+    // Combine user style with display:inline-block to shrink-wrap content
+    let combined_style = match style {
+        Some(s) => format!("display: inline-block; {}", s),
+        None => "display: inline-block;".to_string(),
+    };
+
     view! {
         <div
             node_ref=ctx.anchor_ref
             class=class
-            style=style
+            style=combined_style
             data-radix-popper-anchor=""
         >
             {children()}

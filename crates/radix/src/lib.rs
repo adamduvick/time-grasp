@@ -18,7 +18,11 @@ pub use primitives::{
     DialogTitle, DialogTrigger,
 };
 pub use primitives::Label;
-pub use primitives::{PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperRoot, PopperSide};
+pub use primitives::{
+    PopoverAlign, PopoverAnchor, PopoverArrow, PopoverClose, PopoverContent, PopoverPortal,
+    PopoverRoot, PopoverSide, PopoverTrigger,
+};
+pub use primitives::{PopperAlign, PopperAnchor, PopperArrow, PopperContent, PopperContext, PopperRoot, PopperSide};
 pub use primitives::{ProgressIndicator, ProgressRoot};
 pub use primitives::{
     RadioGroupIndicator, RadioGroupItem, RadioGroupOrientation, RadioGroupRoot,
