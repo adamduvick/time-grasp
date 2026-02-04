@@ -87,7 +87,7 @@
     "path": "/menubar",
     "name": "Menubar",
     "description": "Application menu bar with keyboard navigation",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/navigation-menu",

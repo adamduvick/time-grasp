@@ -181,7 +181,7 @@ pub fn MenuContent(
 
     /// Callback when escape key is pressed
     #[prop(optional)]
-    on_escape_key_down: Option<Callback<web_sys::KeyboardEvent>>,
+    _on_escape_key_down: Option<Callback<web_sys::KeyboardEvent>>,
 
     /// Callback when pointer moves outside
     #[prop(optional)]
@@ -189,7 +189,11 @@ pub fn MenuContent(
 
     /// Callback when focus moves outside
     #[prop(optional)]
-    on_focus_outside: Option<Callback<web_sys::FocusEvent>>,
+    _on_focus_outside: Option<Callback<web_sys::FocusEvent>>,
+
+    /// Additional keydown handler called before default handling
+    #[prop(optional)]
+    on_keydown: Option<Callback<web_sys::KeyboardEvent>>,
 
     /// The menu content
     children: ChildrenFn,
@@ -285,6 +289,8 @@ pub fn MenuContent(
     let style = StoredValue::new(style);
     let children = StoredValue::new(children);
 
+    let on_keydown = StoredValue::new(on_keydown);
+
     view! {
         <Show when=move || menu_ctx.open.get()>
             <MenuContentInner
@@ -298,6 +304,7 @@ pub fn MenuContent(
                 collision_padding=collision_padding
                 class=class.get_value()
                 style=style.get_value()
+                on_keydown=on_keydown.get_value()
                 children=children
             />
         </Show>
@@ -317,6 +324,7 @@ fn MenuContentInner(
     #[prop(into)] collision_padding: Signal<i32>,
     class: Option<String>,
     style: Option<String>,
+    on_keydown: Option<Callback<web_sys::KeyboardEvent>>,
     children: StoredValue<ChildrenFn>,
 ) -> impl IntoView {
     provide_context(content_ctx);
@@ -325,15 +333,23 @@ fn MenuContentInner(
     let menu_ctx = use_context::<MenuContext>().expect("MenuContentInner requires MenuContext");
     let popper_ctx = use_context::<PopperContext>();
 
-    // Focus the content on mount
+    // NodeRef for focusing the content
+    let content_ref: NodeRef<leptos::html::Div> = NodeRef::new();
+
+    // Focus the content on mount using setTimeout(0) to ensure DOM is ready
     Effect::new(move || {
-        let id = content_id.get_value();
-        if let Some(document) = web_sys::window().and_then(|w| w.document()) {
-            if let Some(el) = document.get_element_by_id(&id) {
-                if let Ok(html_el) = el.dyn_into::<web_sys::HtmlElement>() {
+        if let Some(window) = web_sys::window() {
+            let callback = Closure::<dyn Fn()>::new(move || {
+                if let Some(Some(el)) = content_ref.try_get() {
+                    let html_el: web_sys::HtmlElement = el.into();
                     let _ = html_el.focus();
                 }
-            }
+            });
+            let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                callback.as_ref().unchecked_ref(),
+                0,
+            );
+            callback.forget();
         }
     });
 
@@ -371,7 +387,17 @@ fn MenuContentInner(
         }
     };
 
-    let on_keydown = move |ev: web_sys::KeyboardEvent| {
+    let internal_on_keydown = move |ev: web_sys::KeyboardEvent| {
+        // Call external handler first (e.g., for menubar navigation)
+        if let Some(cb) = on_keydown {
+            cb.run(ev.clone());
+        }
+
+        // If the event was handled externally, don't process further
+        if ev.default_prevented() {
+            return;
+        }
+
         is_using_keyboard.set(true);
         let key = ev.key();
         let ids = item_ids.get();
@@ -486,11 +512,12 @@ fn MenuContentInner(
             style=style.unwrap_or_default()
         >
             <div
+                node_ref=content_ref
                 id=content_id.get_value()
                 role="menu"
                 tabindex="-1"
                 data-radix-menu-content=""
-                on:keydown=on_keydown
+                on:keydown=internal_on_keydown
                 on:pointermove=on_pointermove
             >
                 {children.with_value(|c| c())}

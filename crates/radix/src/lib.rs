@@ -39,6 +39,11 @@ pub use primitives::{
     MenuSeparator,
 };
 pub use primitives::{
+    MenubarAlign, MenubarArrow, MenubarCheckboxItem, MenubarContent, MenubarGroup, MenubarItem,
+    MenubarItemIndicator, MenubarLabel, MenubarMenu, MenubarPortal, MenubarRadioGroup,
+    MenubarRadioItem, MenubarRoot, MenubarSeparator, MenubarTrigger,
+};
+pub use primitives::{
     PopoverAlign, PopoverAnchor, PopoverArrow, PopoverClose, PopoverContent, PopoverPortal,
     PopoverRoot, PopoverSide, PopoverTrigger,
 };

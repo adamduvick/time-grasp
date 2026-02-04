@@ -11,6 +11,7 @@ pub mod dropdown_menu;
 pub mod hover_card;
 pub mod label;
 pub mod menu;
+pub mod menubar;
 pub mod popover;
 pub mod popper;
 pub mod progress;
@@ -65,6 +66,11 @@ pub use menu::{
     MenuAnchor, MenuArrow, MenuCheckboxItem, MenuContent, MenuContext, MenuDir, MenuGroup,
     MenuItemIndicator, MenuItem, MenuLabel, MenuPortal, MenuRadioGroup, MenuRadioItem, MenuRoot,
     MenuSeparator,
+};
+pub use menubar::{
+    MenubarAlign, MenubarArrow, MenubarCheckboxItem, MenubarContent, MenubarGroup, MenubarItem,
+    MenubarItemIndicator, MenubarLabel, MenubarMenu, MenubarPortal, MenubarRadioGroup,
+    MenubarRadioItem, MenubarRoot, MenubarSeparator, MenubarTrigger,
 };
 pub use popover::{
     PopoverAlign, PopoverAnchor, PopoverArrow, PopoverClose, PopoverContent, PopoverPortal,
