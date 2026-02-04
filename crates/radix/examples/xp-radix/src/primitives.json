@@ -165,7 +165,7 @@
     "path": "/toast",
     "name": "Toast",
     "description": "Temporary notifications with auto-dismiss",
-    "implemented": false
+    "implemented": true
   },
   {
     "path": "/toggle",

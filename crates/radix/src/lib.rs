@@ -55,6 +55,10 @@ pub use primitives::{Separator, SeparatorOrientation};
 pub use primitives::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
 pub use primitives::{SwitchRoot, SwitchThumb};
 pub use primitives::{TabsActivationMode, TabsContent, TabsList, TabsOrientation, TabsRoot, TabsTrigger};
+pub use primitives::{
+    ToastAction, ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastSwipeDirection,
+    ToastTitle, ToastViewport,
+};
 pub use primitives::ToggleRoot;
 pub use primitives::{ToggleGroupItem, ToggleGroupOrientation, ToggleGroupRoot, ToggleGroupType};
 pub use primitives::{
