@@ -232,6 +232,85 @@ button {
   min-width: 150px;
 }
 
+/* === Menu (Internal Primitive) === */
+/* Radix provides: Positioning, keyboard navigation, typeahead, checkbox/radio items */
+/* User must style: menu appearance, item states, indicators */
+
+.menu-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.25rem;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.menu-item,
+.menu-checkbox-item,
+.menu-radio-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  padding-left: 1.5rem;
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+}
+
+.menu-item[data-highlighted],
+.menu-checkbox-item[data-highlighted],
+.menu-radio-item[data-highlighted] {
+  background: var(--color-accent);
+  color: white;
+}
+
+.menu-item[data-disabled],
+.menu-checkbox-item[data-disabled],
+.menu-radio-item[data-disabled] {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.menu-label {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.menu-separator {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.25rem 0;
+}
+
+.menu-shortcut {
+  margin-left: 2rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.menu-item[data-highlighted] .menu-shortcut,
+.menu-checkbox-item[data-highlighted] .menu-shortcut,
+.menu-radio-item[data-highlighted] .menu-shortcut {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.menu-item-indicator {
+  position: absolute;
+  left: 0.5rem;
+  width: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-arrow {
+  fill: var(--color-surface);
+}
+
 /* === Popover === */
 /* Radix provides: Positioning relative to trigger, collision detection, arrow */
 /* User must style: content box appearance, arrow fill */

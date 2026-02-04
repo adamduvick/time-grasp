@@ -78,6 +78,12 @@
     "implemented": true
   },
   {
+    "path": "/menu",
+    "name": "Menu",
+    "description": "Internal menu primitive used by DropdownMenu, ContextMenu, and Menubar",
+    "implemented": true
+  },
+  {
     "path": "/menubar",
     "name": "Menubar",
     "description": "Application menu bar with keyboard navigation",

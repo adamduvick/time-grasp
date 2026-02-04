@@ -22,6 +22,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/form") view=crate::routes::FormExample />
                     <Route path=path!("/hover-card") view=crate::routes::HoverCardExample />
                     <Route path=path!("/label") view=crate::routes::LabelExample />
+                    <Route path=path!("/menu") view=crate::routes::MenuExample />
                     <Route path=path!("/menubar") view=crate::routes::MenubarExample />
                     <Route path=path!("/navigation-menu") view=crate::routes::NavigationMenuExample />
                     <Route path=path!("/otp-field") view=crate::routes::OtpFieldExample />
