@@ -10,7 +10,7 @@ use leptos::prelude::*;
 use leptos_router::MatchNestedRoutes;
 use leptos_router::components::{A, Outlet, ParentRoute, Route};
 use leptos_router_macro::path;
-use radix::{ScrollAreaRoot, ScrollAreaViewport, ScrollType};
+use cardo_ui::{ScrollAreaRoot, ScrollAreaViewport, ScrollType};
 
 use aspect_ratio::AspectRatioExample;
 use avatar::AvatarExample;

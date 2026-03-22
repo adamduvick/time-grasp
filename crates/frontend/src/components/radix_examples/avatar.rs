@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::{AvatarFallback, AvatarImage, AvatarRoot};
+use cardo_ui::{AvatarFallback, AvatarImage, AvatarRoot};
 
 #[component]
 pub fn AvatarExample() -> impl IntoView {

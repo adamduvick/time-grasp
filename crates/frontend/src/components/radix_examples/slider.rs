@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
+use cardo_ui::{SliderOrientation, SliderRange, SliderRoot, SliderThumb, SliderTrack};
 
 #[component]
 pub fn SliderExample() -> impl IntoView {

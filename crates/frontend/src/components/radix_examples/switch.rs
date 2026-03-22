@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::{SwitchRoot, SwitchThumb};
+use cardo_ui::{SwitchRoot, SwitchThumb};
 
 #[component]
 pub fn SwitchExample() -> impl IntoView {

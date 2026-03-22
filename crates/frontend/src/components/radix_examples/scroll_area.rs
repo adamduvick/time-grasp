@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::{ScrollAreaRoot, ScrollAreaViewport, ScrollType};
+use cardo_ui::{ScrollAreaRoot, ScrollAreaViewport, ScrollType};
 
 use super::shared::{StyledHorizontalScrollbar, StyledVerticalScrollbar};
 

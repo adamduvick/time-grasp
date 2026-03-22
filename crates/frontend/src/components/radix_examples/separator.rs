@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::{Separator, SeparatorOrientation};
+use cardo_ui::{Separator, SeparatorOrientation};
 
 #[component]
 pub fn SeparatorExample() -> impl IntoView {

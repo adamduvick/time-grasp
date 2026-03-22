@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::{Orientation, ScrollAreaScrollbar, ScrollAreaThumb};
+use cardo_ui::{Orientation, ScrollAreaScrollbar, ScrollAreaThumb};
 
 /// Styled vertical scrollbar for examples
 #[component]

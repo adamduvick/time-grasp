@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use radix::AspectRatio;
+use cardo_ui::AspectRatio;
 
 #[component]
 pub fn AspectRatioExample() -> impl IntoView {
