@@ -1,209 +1,143 @@
-# 🕰️ Time-Grasp
+# Time-Grasp
 
-> A YNAB-style **time budgeting app** for people who want to track where their hours actually go.
+A local-first time budgeting app inspired by YNAB's envelope method, applied to hours instead of dollars. Capture, categorize, and plan your time with the same intentionality you'd use for money.
 
-Time-Grasp helps you **capture, categorize, and plan your time** with the same intention you’d use for your money.  
-Built with **Rust + Leptos + Tauri**, it’s fast, offline-capable, and privacy-respecting.
+Built entirely in Rust — frontend, backend, and native shell — targeting desktop first with mobile support planned.
 
----
+## Tech Stack
 
-## 🚀 Overview
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Native Shell | Tauri 2 | Desktop/mobile runtime, IPC bridge |
+| Frontend | Leptos 0.8 (Rust/WASM) | CSR, reactive stores, client-side routing |
+| UI Primitives | pith-ui | Leptos port of Radix UI primitives |
+| Database | SQLite via SQLx 0.8 | Compile-time verified queries, embedded migrations |
+| Async | Tokio | Backend concurrency |
+| Build | Trunk | Compiles Leptos to WASM, serves during dev |
 
-- **Product:** Local-first, single-user time budgeting/tracking app (MVP)
-- **Vision:** Eventually sync across devices; analyze trends; support goals/targets
-- **Design Goals:**  
-  - Snappy 60 Hz UX feel  
-  - Local database with future server sync  
-  - Clean, reactive UI  
-  - High maintainability and testability  
+## Architecture
 
----
-
-## 🧱 Tech Stack
-
-### App Shell
-| Layer    | Tech                   | Purpose                                         |
-| -------- | ---------------------- | ----------------------------------------------- |
-| Runtime  | **Tauri**              | Native desktop/mobile shell, IPC bridge         |
-| Frontend | **Leptos (Rust/WASM)** | Reactive UI framework                           |
-| Builder  | **Trunk**              | Builds Leptos → static assets for Tauri         |
-| Mobile   | **Tauri iOS**          | Xcode project; iOS builds via Rust+Swift bridge |
-
----
-
-### Backend (Rust)
-| Component     | Library                     | Description                                 |
-| ------------- | --------------------------- | ------------------------------------------- |
-| Database      | **SQLite + SQLx**           | Local persistent store                      |
-| Migrations    | `sqlx::migrate!()`          | Runs embedded migrations at startup         |
-| IPC Gateway   | Custom                      | Central CRUD interface (frontend ↔ backend) |
-| Async Runtime | **Tokio**                   | Concurrency                                 |
-| Observability | **OpenTelemetry + Tracing** | Instrumentation for metrics/logs/traces     |
-
----
-
-### Observability Stack
-| Layer   | Service                        | Notes                                   |
-| ------- | ------------------------------ | --------------------------------------- |
-| Metrics | **Prometheus → Grafana Cloud** | Free-tier metrics collection            |
-| Traces  | **Grafana Tempo**              | Linked to OpenTelemetry traces          |
-| Logs    | **Grafana Loki**               | Structured backend logs                 |
-| Errors  | **Sentry**                     | Frontend/backend crash + issue tracking |
-
----
-
-## 🧩 Data Model (Normalized)
-
-| Table             | Fields                                     | Description                                  |
-| ----------------- | ------------------------------------------ | -------------------------------------------- |
-| **Entry**         | `id, payee, start, end, category_id, memo` | A single time entry (duration = end − start) |
-| **Category**      | `id, name, group_id, notes`                | A specific “budget” line for time            |
-| **CategoryGroup** | `id, name, notes`                          | Grouping of categories (organization only)   |
-
-> **Key decision:** Local DB uses `BIGINT` primary keys for speed and simplicity.  
-> Server will maintain its own authoritative keys once sync is introduced.
-
----
-
-## 🪄 Architecture
-
-Frontend (Leptos)
-↓  [Tauri IPC]
+```
+Frontend (Leptos/WASM)
+    |  Tauri IPC (15 commands)
 Backend (Rust)
-↓
-SQLite (SQLx)
+    |  SQLx
+SQLite (local file)
+```
 
-**Data Flow Pattern (#1):**
-1. Frontend performs CRUD → backend gateway.  
-2. Backend updates local DB (authoritative).  
-3. Later, backend batches/syncs with remote server.  
-4. Backend tracks and retries failed syncs.
+### Workspace Layout
 
----
+```
+apps/src-tauri/     Tauri native app binary and config
+crates/model/       Shared domain types (Entry, Category, CategoryGroup)
+crates/backend/     Store layer, BMC, IPC handlers
+crates/frontend/    Leptos components, FMC, routing
+```
 
-## 🧠 UX / MVP Slice
+### Backend Layers
 
-| Screen          | Description                                                     |
-| --------------- | --------------------------------------------------------------- |
-| **Entry List**  | Groups entries by date; each row shows name, duration, category |
-| **FAB**         | Floating Action Button → opens modal form                       |
-| **Modal Form**  | Fields: date, duration, name, memo, category                    |
-| **Feedback**    | Optimistic insert + toast confirmation                          |
-| **Persistence** | Data survives restart; migration-safe                           |
+IPC handlers (`ipc.rs`) -> BMC (`bmc.rs`) -> Store traits (`store/traits.rs`) -> SQLx implementations
 
----
+- **IPC handlers** — Thin `#[tauri::command]` functions. Construct context, delegate to BMC.
+- **BMC (Backend Model Controller)** — Generic CRUD wrappers. Emit `HubEvent` on mutations.
+- **Store traits** — `Creatable`, `Readable`, `Updatable`, `Deletable`, `Filterable`.
+- **Store implementations** — Per-entity SQLx queries in `store/{entity}.rs`.
 
-## 🎨 UI System
+### Frontend Layers
 
-Component hierarchy inspired by atomic design:
+- **FMC (Frontend Model Controller)** — Reactive state container using `ArcStore<KeyedVec<Uuid, T>>`. Bridges IPC and UI.
+- **IPC client** — `ipc_call!` macro generates type-safe wrappers for all 15 backend commands.
+- **Components** — Entry list (grouped by date), entry detail view, navigation, Radix showcase.
 
-- **Atoms:** Buttons, inputs, labels, icons, typography  
-- **Molecules:** Entry row, category selector, modal form  
-- **Organisms:** Entry list, entry editor, navigation scaffold  
-- **Pages:** Main view (time entries), settings (later)
+### Data Model
 
-Design tokens will drive colors, spacing, and typography for cross-platform consistency.
+Three core tables: `category_group`, `category`, `entry`.
 
----
+- UUIDs stored as BLOBs, client-generated
+- STRICT mode tables with CHECK constraints
+- Soft-deletion via tombstone fields (`deleted_at`, `deleted_by_user`, `deleted_by_device`, `tombstone_reason`)
+- Optimistic locking via auto-incrementing `version` column (trigger-managed)
+- Computed `duration` column (`end_time - start_time`) as a SQLite VIRTUAL GENERATED column
+- Timestamps in epoch milliseconds
 
-## 🔐 Security & Permissions
+CRUD types follow a naming convention: `C_*` (create), `R_*` (read), `U_*` (update), `D_*` (delete), `*Filter` (query).
 
-- Tauri sandbox with minimal privileges  
-- CSP disabled (`null`) during development for iteration  
-- File system access TBD (export/import phase)  
+## Development
 
----
-
-## 🛠️ Development Setup
+### Prerequisites
 
 ```bash
-# 1. Install prerequisites
 cargo install tauri-cli trunk sqlx-cli
-
-# 2. Build frontend
-trunk build
-
-# 3. Run in dev mode
-tauri dev
-
-# 4. Run migrations (auto-run on startup)
-sqlx migrate run
 ```
 
-## Recommended IDE Setup
+### Commands
 
-[VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
-
-## To Run
-
-Template created! To get started run:
-```shell
-cd time-grasp
-cargo tauri android init
-cargo tauri ios init
+```bash
+cargo tauri dev          # Run full app (Trunk + Tauri)
+trunk build              # Build frontend only
+cargo tauri build        # Release build
+cargo test               # All tests
+cargo check              # Type check
+cargo clippy             # Lint
 ```
 
-For Desktop development, run:
-```shell
-cargo tauri dev
+See the `justfile` for additional shortcuts (`just dev`, `just reload_database`, `just clean`, etc).
+
+### Troubleshooting
+
+If port 1420 is already in use:
+```bash
+pkill trunk
 ```
 
-For Android development, run:
-```shell
-cargo tauri android dev
-```
+## Roadmap
 
-For iOS development, run:
-```shell
-cargo tauri ios dev
-```
+### Phase 1 — Core (Local-Only MVP)
 
-⸻
+- [x] Scaffold Tauri + Leptos workspace
+- [x] Integrate SQLite via SQLx with embedded migrations
+- [x] Define domain model (Entry, Category, CategoryGroup)
+- [x] Implement store trait layer (Creatable, Readable, Updatable, Deletable)
+- [x] Full CRUD for all entities via Tauri IPC
+- [x] Development data seeding
+- [x] Timezone-aware time handling
+- [ ] Define and wire up UI screens for data entry
 
-🗺️ Roadmap
+### Phase 2 — UI & UX
 
-✅ Phase 1 — MVP (Local-Only)
-	•	Scaffold Tauri + Leptos app
-	•	Integrate SQLx + SQLite
-	•	CRUD for Entries/Categories
-	•	Grouped Entry List + FAB form
-	•	Persistent local DB
+- [ ] Iterate on and polish screen layouts for mobile
+- [ ] Navigation scaffold
+- [ ] Theming and design tokens
+- [ ] Settings page
+- [ ] Reflection workflow and reflection screens
 
-🏗️ Phase 2 — UX Polish
-	•	Component library (atoms → organisms)
-	•	Theming + design tokens
-	•	Basic analytics (weekly totals, charts)
-	•	Settings UI
+### Phase 3 — Sync & Multi-Device
 
-🌐 Phase 3 — Sync & Cloud
-	•	Define remote schema & API
-	•	Implement backend batching & sync
-	•	Add account system (multi-device)
+- [ ] Remote API and schema
+- [ ] Background sync with batching and retry
+- [ ] Conflict resolution strategy
+- [ ] Account system
 
-🪶 Phase 4 — Refinement
-	•	Observability dashboards
-	•	Error telemetry → Grafana/Sentry
-	•	Performance tuning
+### Phase 4 — Observability & Operations
 
-⸻
+- [ ] Structured logging (tracing)
+- [ ] Metrics (Prometheus / Grafana)
+- [ ] Distributed tracing (OpenTelemetry / Tempo)
+- [ ] Error tracking (Sentry)
+- [ ] Performance profiling and tuning
 
-⚙️ Open Questions
-	•	Server language/framework (Rust Axum? Go? TBD)
-	•	Local→server ID mapping strategy
-	•	Native date/time picker styling across OS
-	•	Sync conflict resolution
+### Phase 5 — Platform Expansion
 
-⸻
+- [ ] MacOS build
+- [ ] Android build
+- [ ] Windows / Linux support
 
-🧾 License
+## License
 
-MIT (default; may change for commercial release)
-
-⸻
-
-Maintainer: @time-grasp
-Primary Dev Environment: macOS ARM64
-Language: Rust
-Build Target: macOS, iOS (soon), Windows/Linux (later)
+MIT
 
 ---
+
+Maintainer: Adam Duvick
+Platform: macOS ARM64 (primary), iOS (planned)
+Language: Rust (end-to-end)

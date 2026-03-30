@@ -27,7 +27,7 @@ unsafe_code = "forbid"
 backend = { path = "./crates/backend", default-features = false }
 frontend = { path = "./crates/frontend", default-features = false }
 model = { path = "./crates/model", default-features = false }
-cardo-ui = { path = "/Users/adamduvick/Code/clones/rust-radix/packages/primitives/leptos", default-features = false }
+pith-ui = { git = "https://github.com/pith-ui/pith-ui", default-features = false }
 
 # member deps
 anyhow = { version = "1.0.100", default-features = false }
